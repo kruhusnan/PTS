@@ -1,26 +1,29 @@
+
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "PTS",
-  "orientation": "any",
-  "scope": "/",
+  "id": "/PTS/",
+  "name": "PTS Portal โรงเรียนบ้านปงตา",
   "short_name": "PTS",
+  "description": "ระบบสารสนเทศบุคลากรโรงเรียนบ้านปงตา",
   "start_url": "/PTS/",
-  "theme_color": "#9f1239",
+  "scope": "/PTS/",
+  "display": "standalone",
+  "background_color": "#FFF1F2",
+  "theme_color": "#BE123C",
+  "lang": "th",
+  "dir": "ltr",
+  "orientation": "any",
   "icons": [
     {
-      "src": "https://i.postimg.cc/7h8xXjkh/logo-baitan.png",
+      "src": "/PTS/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "643x750",
-      "isSquare": false,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 643,
-      "is512x512": false,
-      "is256x256": false,
-      "is192x192": false
+      "purpose": "any"
+    },
+    {
+      "src": "/PTS/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
