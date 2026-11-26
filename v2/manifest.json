@@ -1,14 +1,13 @@
-
 {
   "id": "/PTS/v2/",
-  "name": "PTS Smart School โรงเรียนบ้านปงตา",
-  "short_name": "PTS Smart School",
-  "description": "ระบบสารสนเทศและลงเวลาปฏิบัติงาน โรงเรียนบ้านปงตา",
+  "name": "PTS Smart School",
+  "short_name": "PTS",
+  "description": "ระบบสารสนเทศโรงเรียนบ้านปงตา",
   "lang": "th",
   "start_url": "/PTS/v2/",
   "scope": "/PTS/v2/",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#881337",
   "theme_color": "#881337",
   "icons": [
