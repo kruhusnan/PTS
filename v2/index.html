@@ -72,7 +72,7 @@ a{text-decoration:none;color:inherit}
 </header>
 <nav class="menu" aria-label="เมนูหลัก">
 <!-- ส่วนที่ 9 : ปุ่มลงเวลาปฏิบัติงาน -->
-<a class="menu-card attendance" href="./attendance/">
+<a id="attendanceBtn" class="menu-card attendance" href="./attendance/">
 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M2 12a10 10 0 0 1 18-6"/>
 <path d="M2 16h.01"/>
@@ -111,5 +111,39 @@ a{text-decoration:none;color:inherit}
 </main>
 <!-- ส่วนที่ 12 : เชื่อมฟังก์ชัน Biometric ส่วนกลาง -->
 <script src="./attendance/biometric.js"></script>
+<script>
+/* ส่วนที่ 13 : เชื่อมปุ่มหน้าแรกกับ Biometric */
+(function(){
+  'use strict';
+  const btn=document.getElementById('attendanceBtn');
+  let busy=false;
+  btn.addEventListener('click',async function(event){
+    // หากโหลดฟังก์ชันไม่ได้ ให้เปิดหน้าลงเวลาเดิม
+    if(!window.PTSBiometric)return;
+    // ตรวจสอบความพร้อมของอุปกรณ์
+    const ready=window.PTSBiometric.checkReadiness();
+    if(!ready.supported||!ready.registered)return;
+    // ป้องกันการเปิดหน้าลงเวลาและการกดซ้ำ
+    event.preventDefault();
+    if(busy)return;
+    // ให้ผู้ใช้เลือกลงเวลาด่วนหรือเปิดระบบเดิม
+    const quick=confirm('กด ตกลง เพื่อทดสอบ Biometric\nกด ยกเลิก เพื่อเปิดระบบลงเวลา ลา และไปราชการตามเดิม');
+    if(!quick){
+      window.PTSBiometric.openAttendance();
+      return;
+    }
+    busy=true;
+    try{
+      // ทดสอบ Biometric โดยไม่บันทึกข้อมูลลงชีต
+      await window.PTSBiometric.testBiometric();
+    }catch(err){
+      alert('ไม่สามารถเรียก Biometric ได้: '+err.message);
+    }finally{
+      busy=false;
+    }
+  });
+})();
+</script>
+<!-- ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา -->
 </body>
 </html>
