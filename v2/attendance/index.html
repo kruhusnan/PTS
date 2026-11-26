@@ -4,16 +4,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
 <title>ระบบลงเวลาโรงเรียนบ้านปงตา</title>
-<link rel="manifest" href="../manifest.json">
-<meta name="theme-color" content="#be123c">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="../../icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <style>
-/* ส่วนที่ 1 : ตั้งค่าพื้นฐาน */
+/* ส่วนที่ 1 : รูปแบบพื้นฐาน */
 :root{--pink:#e91e63;--pink-dark:#c2185b;--pink-light:#fce4ec;--text:#334155;--muted:#78909c;--border:#e2e8f0;--shadow:0 10px 30px rgba(194,24,91,.12)}
 *{box-sizing:border-box}
 body{margin:0;padding:16px;min-height:100vh;background:linear-gradient(145deg,#fff1f5,#f8bbd0);font-family:'Kanit',sans-serif;color:var(--text);display:flex;justify-content:center;align-items:flex-start;-webkit-tap-highlight-color:transparent}
@@ -22,60 +18,57 @@ button{cursor:pointer}
 button:disabled{opacity:.55;cursor:not-allowed}
 .hidden{display:none!important}
 .app{width:100%;max-width:490px;background:white;border-radius:24px;overflow:hidden;box-shadow:var(--shadow);min-height:500px;position:relative}
-/* ส่วนที่ 2 : ส่วนหัวและโลโก้โรงเรียน */
-.header{background:linear-gradient(135deg,#ad1457,#e91e63,#f06292);color:white;text-align:center;padding:24px 16px 37px;border-radius:0 0 26px 26px;position:relative}
-.admin-enroll-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:5px 10px;font-size:11px;display:flex;align-items:center;gap:4px}
-.admin-enroll-btn .material-icons-round{font-size:16px}
+/* ส่วนหัวระบบ */
+.header{background:linear-gradient(135deg,#ad1457,#e91e63,#f06292);color:white;text-align:center;padding:24px 16px 32px;border-radius:0 0 26px 26px;position:relative}
+.back-btn{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.35);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+.back-btn .material-icons-round{font-size:19px}
 .brand-icon{width:68px;height:68px;border-radius:50%;background:white;padding:6px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
 .brand-icon .material-icons-round{font-size:30px;color:#c2185b}
 .header h1{font-size:22px;margin:0;font-weight:600}
 .header p{font-size:13px;margin:4px 0 0;opacity:.94;font-weight:300}
-/* ส่วนที่ 3 : แท็บลงเวลาและรายงาน */
-.tabs{display:flex;gap:6px;background:white;border-radius:50px;margin:-22px 22px 22px;padding:5px;position:relative;box-shadow:0 5px 18px rgba(0,0,0,.12)}
-.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;border:0;border-radius:40px;background:transparent;color:#64748b;font-size:14px}
-.tab .material-icons-round{font-size:19px}
-.tab.active{color:white;background:linear-gradient(135deg,#e91e63,#ad1457);box-shadow:0 4px 12px rgba(233,30,99,.25)}
-main{padding:0 20px 10px}
+main{padding:20px 20px 10px}
 .section-head{margin-bottom:18px}
 .section-head h2{font-size:18px;font-weight:600;margin:0}
 .section-head p{font-size:12px;color:var(--muted);margin:3px 0 0}
-/* ส่วนที่ 4 : ช่องกรอกข้อมูล */
+/* ส่วนแสดงข้อมูล Session */
+.session-card{display:flex;align-items:center;gap:10px;border:1px solid #bbf7d0;background:#f0fdf4;border-radius:14px;padding:12px;margin-bottom:18px}
+.session-icon{width:40px;height:40px;border-radius:50%;background:#dcfce7;color:#15803d;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.session-info{flex:1;min-width:0}
+.session-info strong{display:block;color:#15803d;font-size:13px;font-weight:500}
+.session-info p{margin:2px 0 0;color:#475569;font-size:12px;overflow-wrap:anywhere}
+.role-badge{font-size:10px;font-weight:500;border-radius:20px;background:#dcfce7;color:#15803d;padding:4px 9px}
+.role-badge.hr{background:#dbeafe;color:#1d4ed8}
+.role-badge.admin{background:#fce7f3;color:#be185d}
+/* ส่วนฟอร์มกรอกข้อมูล */
 label{display:block;font-size:14px;font-weight:500;margin:0 0 8px}
 .input-box{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:#f8fafc;border-radius:13px;padding:0 12px;margin-bottom:16px;transition:border-color .2s,box-shadow .2s}
 .input-box:focus-within{border-color:var(--pink);box-shadow:0 0 0 3px rgba(233,30,99,.08);background:white}
-.input-box .material-icons-round{color:#db2777;font-size:21px}
+.input-box .material-icons-round{color:#db2777;font-size:21px;flex-shrink:0}
 .input-box input,.input-box select{width:100%;min-width:0;padding:13px 0;border:0;outline:0;background:transparent;font-size:14px;color:var(--text)}
-/* ส่วนที่ 5 : สถานะการปฏิบัติงาน */
-.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 20px}
-.status-choice{margin:0;cursor:pointer}
-.status-choice input{position:absolute;opacity:0;width:1px;height:1px}
-.status-content{border:1px solid #e5e7eb;border-radius:13px;min-height:83px;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;padding:8px 3px;text-align:center;font-size:12px;background:white;transition:.2s}
-.status-content .material-icons-round{font-size:24px}
-.present .status-content{color:#15803d;background:#f0fdf4;border-color:#bbf7d0}
-.leave .status-content{color:#b45309;background:#fffbeb;border-color:#fde68a}
-.trip .status-content{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}
-.present input:checked+.status-content{background:#16a34a;border-color:#16a34a;color:white}
-.leave input:checked+.status-content{background:#f59e0b;border-color:#f59e0b;color:white}
-.trip input:checked+.status-content{background:#2563eb;border-color:#2563eb;color:white}
+.input-box input[readonly]{color:#64748b}
+.input-box select:disabled{opacity:1;color:#64748b}
 .conditional{padding:14px 13px 1px;border:1px solid #fbcfe8;border-radius:14px;background:#fff7fa;margin:0 0 18px}
-/* ส่วนที่ 6 : กล่อง Biometric และข้อมูลเจ้าของเครื่อง */
-.bio-card{border:2px dashed #f472b6;border-radius:18px;background:#fff7fa;padding:18px 16px;text-align:center;margin-bottom:16px}
-.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 12px;border-radius:20px;background:#fce7f3;color:#be185d;margin-bottom:14px}
-.status-pill.ready{background:#dcfce7;color:#15803d}
-.owner-card{background:white;border:1.5px solid #22c55e;border-radius:14px;padding:12px;margin-bottom:14px;text-align:left;display:flex;align-items:center;gap:10px}
+.info-box{display:flex;align-items:center;gap:8px;padding:11px 12px;background:#eff6ff;color:#1d4ed8;border-radius:11px;font-size:12px;line-height:1.6;margin-bottom:17px}
+.info-box .material-icons-round{font-size:21px;flex-shrink:0}
+.delegate-info{padding:10px 12px;margin-bottom:16px;border-radius:10px;background:#fff7ed;color:#b45309;font-size:12px}
+/* ส่วนลงทะเบียน Biometric */
+.bio-card{border:2px dashed #f472b6;border-radius:18px;background:#fff7fa;padding:20px 16px;text-align:center;margin-bottom:16px}
+.bio-card h3{font-size:17px;color:#be185d;margin:8px 0}
+.bio-card p{font-size:12px;color:#64748b;margin:5px 0 12px;line-height:1.7}
+.bio-icon{font-size:64px;color:#be185d}
+.owner-card{background:white;border:1px solid #bbf7d0;border-radius:14px;padding:12px;margin-bottom:14px;text-align:left;display:flex;align-items:center;gap:10px}
 .owner-card .avatar-icon{width:44px;height:44px;border-radius:50%;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .owner-card h4{margin:0;font-size:15px;color:#15803d}
 .owner-card p{margin:2px 0 0;font-size:12px;color:#64748b}
-.btn-bio-trigger{width:100%;border:0;border-radius:14px;min-height:54px;color:white;font-size:15px;font-weight:500;background:linear-gradient(135deg,#ec4899,#be185d);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(194,24,91,.22)}
-.btn-bio-trigger.leave-btn{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 6px 18px rgba(217,119,6,.22)}
-.btn-bio-trigger.trip-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 6px 18px rgba(29,78,216,.22)}
-.gps-info{display:flex;align-items:center;gap:8px;padding:11px 12px;background:#eff6ff;color:#1d4ed8;border-radius:11px;font-size:11px;line-height:1.5;margin-bottom:17px}
-.gps-info .material-icons-round{font-size:21px;flex-shrink:0}
-.btn-main,.btn-print{width:100%;border:0;border-radius:14px;min-height:51px;color:white;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 18px rgba(194,24,91,.18)}
+/* ปุ่มคำสั่ง */
+.btn-main,.btn-print,.btn-secondary{width:100%;border:0;border-radius:14px;min-height:51px;color:white;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 6px 18px rgba(194,24,91,.18)}
 .btn-main{background:linear-gradient(135deg,#ec4899,#be185d)}
+.btn-main.leave-btn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.btn-main.trip-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
 .btn-print{margin-top:17px;background:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 6px 18px rgba(22,163,74,.18)}
-.btn-main:active,.btn-print:active,.btn-bio-trigger:active{transform:scale(.985)}
-/* ส่วนที่ 7 : Dashboard และรายงาน */
+.btn-secondary{background:#f1f5f9;color:#475569;box-shadow:none;margin-top:12px;font-size:14px}
+.btn-main:active,.btn-print:active,.btn-secondary:active{transform:scale(.985)}
+/* ส่วน Dashboard เดิม */
 .report-title{text-align:center;margin:10px 0 16px}
 .report-title h3{font-size:14px;font-weight:400;margin:0;color:#64748b}
 .report-title p{color:#be185d;font-size:16px;margin:2px 0;font-weight:600}
@@ -106,285 +99,306 @@ tr:last-child td{border-bottom:0}
 .absent-group strong{display:block;background:#f8fafc;padding:9px 12px;font-size:12px;color:#475569}
 .absent-group p{font-size:12px;line-height:1.8;padding:11px 12px;margin:0;color:#64748b}
 .complete{display:flex;align-items:center;justify-content:center;gap:8px;padding:18px;border-radius:12px;color:#15803d;background:#f0fdf4;font-size:14px}
-/* ส่วนที่ 8 : Loading และหน้าต่างลงทะเบียน */
 .report-loading{text-align:center;padding:30px 0;color:#64748b;font-size:12px}
+/* ส่วนแสดงสถานะและข้อความแจ้งเตือน */
 .spinner{width:37px;height:37px;border-radius:50%;border:4px solid #fce7f3;border-top-color:#db2777;animation:spin .8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay,.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;z-index:2000;padding:16px}
-.loading-overlay{background:rgba(255,255,255,.88);z-index:3000}
-.loading-card,.modal-card{background:white;padding:24px;border-radius:22px;text-align:center;width:100%;max-width:400px;box-shadow:0 15px 40px rgba(0,0,0,.2)}
-.modal-card{text-align:left}
-.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
-.modal-head h3{font-size:18px;color:#be185d;margin:0}
-.close-modal{background:#f1f5f9;color:#64748b;border:0;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
-#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#15803d;color:white;border-radius:13px;padding:13px 18px;max-width:90%;width:max-content;opacity:0;pointer-events:none;z-index:4000;transition:.25s;font-size:14px;text-align:center;box-shadow:0 5px 20px #0002}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.88);display:flex;align-items:center;justify-content:center;z-index:2000;padding:16px}
+.loading-card{background:white;padding:24px;border-radius:22px;text-align:center;width:100%;max-width:400px;box-shadow:0 15px 40px rgba(0,0,0,.12)}
+.loading-card p{font-size:14px;color:#64748b;margin:0}
+.result-card{text-align:center;padding:25px 12px}
+.result-card h3{color:#15803d;font-size:21px;margin:10px 0}
+.result-card p{font-size:14px;color:#64748b;line-height:1.7}
+.result-icon{font-size:72px;color:#16a34a}
+.error-card{text-align:center;padding:20px 12px}
+.error-card h3{color:#be123c;font-size:19px}
+.error-card p{font-size:13px;color:#64748b;line-height:1.7}
+#toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,30px);width:max-content;max-width:calc(100% - 30px);background:#15803d;color:white;padding:13px 20px;border-radius:14px;font-size:13px;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,.15);z-index:3000;opacity:0;pointer-events:none;transition:.25s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #toast.error{background:#dc2626}
-/* ส่วนที่ 9 : ส่วนท้ายและการรองรับมือถือ */
-footer{padding:15px 8px;background:#fff1f5;color:#9d174d;font-size:10px;text-align:center;border-top:1px solid #fce7f3}
+footer{margin-top:20px;padding:14px 10px;background:#fff1f5;color:#9d174d;font-size:10px;text-align:center;border-top:1px solid #fce7f3}
 @media(max-width:520px){
 body{padding:0;background:white}
 .app{max-width:100%;min-height:100vh;border-radius:0;box-shadow:none}
 .header{border-radius:0 0 24px 24px}
-main{padding:0 16px 10px}
-.tabs{margin:-22px 16px 22px}
+main{padding:20px 16px 10px}
 }
 </style>
 </head>
 <body>
 <div class="app">
-<!-- ส่วนที่ 10 : หัวระบบลงเวลาปฏิบัติงาน -->
+<!-- ส่วนที่ 2 : ส่วนหัวระบบ -->
 <header class="header">
-<button type="button" class="admin-enroll-btn" onclick="openEnrollModal()">
-<span class="material-icons-round">fingerprint</span> ลงทะเบียน / เปลี่ยนเครื่อง
-</button>
-<div class="brand-icon">
-<img id="schoolLogo" alt="โลโก้โรงเรียน" style="width:100%;height:100%;object-fit:contain;border-radius:50%;display:none">
-<span id="logoFallback" class="material-icons-round">school</span>
-</div>
-<h1>โรงเรียนบ้านปงตา</h1>
-<p>ระบบลงเวลาปฏิบัติราชการดิจิทัล</p>
+  <button type="button" class="back-btn" onclick="returnPortal()" aria-label="กลับ PTS Portal">
+    <span class="material-icons-round">arrow_back</span>
+  </button>
+  <div class="brand-icon">
+    <img src="https://img2.pic.in.th/---77d6d2d89c4e1695.png" alt="โลโก้โรงเรียน" style="width:100%;height:100%;object-fit:contain;border-radius:50%">
+  </div>
+  <h1>โรงเรียนบ้านปงตา</h1>
+  <p>ระบบลงเวลาปฏิบัติราชการดิจิทัล</p>
 </header>
-<!-- ส่วนที่ 11 : เมนูลงเวลาและรายงาน -->
-<nav class="tabs">
-<button type="button" id="tab-attendance" class="tab active" onclick="switchTab('attendance')">
-<span class="material-icons-round">fingerprint</span> ลงเวลา
-</button>
-<button type="button" id="tab-report" class="tab" onclick="switchTab('report')">
-<span class="material-icons-round">assessment</span> รายงาน
-</button>
-</nav>
 <main>
-<!-- ส่วนที่ 12 : แบบฟอร์มลงเวลาปฏิบัติงาน -->
-<section id="attendanceTab">
-<div class="section-head">
-<h2>บันทึกการปฏิบัติราชการ</h2>
-<p>สแกนลายนิ้วมือ / Face ID เพื่อบันทึกข้อมูลอัตโนมัติ</p>
+<!-- ส่วนที่ 3 : ข้อมูลผู้เข้าสู่ระบบจาก Portal -->
+<div id="sessionCard" class="session-card hidden">
+  <div class="session-icon">
+    <span class="material-icons-round">verified_user</span>
+  </div>
+  <div class="session-info">
+    <strong>ยืนยันตัวตนผ่าน PTS Portal แล้ว</strong>
+    <p id="sessionName">-</p>
+  </div>
+  <span id="roleBadge" class="role-badge hidden"></span>
 </div>
-<form id="attendanceForm" onsubmit="event.preventDefault()">
-<label for="customDate">วันที่ปฏิบัติราชการ</label>
-<div class="input-box">
-<span class="material-icons-round">calendar_month</span>
-<input id="customDate" type="date" required>
-</div>
-<label>สถานะการลงเวลา</label>
-<div class="status-grid">
-<label class="status-choice present">
-<input type="radio" name="et" value="มาปฏิบัติงาน" checked onchange="toggleFields()">
-<span class="status-content">
-<span class="material-icons-round">how_to_reg</span>
-<span>มาปฏิบัติงาน</span>
-</span>
-</label>
-<label class="status-choice leave">
-<input type="radio" name="et" value="ลา" onchange="toggleFields()">
-<span class="status-content">
-<span class="material-icons-round">event_busy</span>
-<span>ลา</span>
-</span>
-</label>
-<label class="status-choice trip">
-<input type="radio" name="et" value="ไปราชการ" onchange="toggleFields()">
-<span class="status-content">
-<span class="material-icons-round">flight_takeoff</span>
-<span>ไปราชการ</span>
-</span>
-</label>
-</div>
-<!-- ส่วนที่ 13 : รายละเอียดการลา -->
-<div id="leaveTypeArea" class="conditional hidden">
-<label for="leaveType">ประเภทการลา</label>
-<div class="input-box">
-<span class="material-icons-round">description</span>
-<select id="leaveType">
-<option value="">-- เลือกประเภทการลา --</option>
-<option value="ลากิจ">ลากิจ</option>
-<option value="ลาป่วย">ลาป่วย</option>
-<option value="ลาคลอด">ลาคลอด</option>
-<option value="ลาไปทำฮัจย์">ลาไปทำฮัจย์</option>
-</select>
-</div>
-</div>
-<!-- ส่วนที่ 14 : รายละเอียดการไปราชการ -->
-<div id="tripDetailsArea" class="conditional hidden">
-<label for="tripSubject">เรื่องที่ไปราชการ</label>
-<div class="input-box">
-<span class="material-icons-round">description</span>
-<input id="tripSubject" type="text" placeholder="ระบุเรื่องที่ไปราชการ">
-</div>
-<label for="tripLocation">สถานที่ไปราชการ</label>
-<div class="input-box">
-<span class="material-icons-round">location_on</span>
-<input id="tripLocation" type="text" placeholder="ระบุสถานที่ไปราชการ">
-</div>
-</div>
-<!-- ส่วนที่ 15 : ปุ่มสแกน Biometric -->
-<div id="biometricContainer" class="bio-card">
-<div id="deviceStatusBadge" class="status-pill">
-<span class="material-icons-round" style="font-size:15px">fingerprint</span>
-<span id="deviceStatusText">กำลังตรวจสอบสถานะเครื่อง...</span>
-</div>
-<div id="registeredOwnerCard" class="owner-card hidden">
-<div class="avatar-icon">
-<span class="material-icons-round">verified_user</span>
-</div>
-<div>
-<h4 id="ownerName">-</h4>
-<p id="ownerPos">-</p>
-</div>
-</div>
-<button type="button" id="btnBioScan" class="btn-bio-trigger" onclick="handleWebAuthnAction()">
-<span class="material-icons-round" style="font-size:24px">fingerprint</span>
-<span id="btnBioText">สแกนลายนิ้วมือ / Face ID เพื่อลงเวลา</span>
-</button>
-</div>
-<div id="gpsInfo" class="gps-info">
-<span class="material-icons-round">my_location</span>
-<span id="gpsInfoText">การมาปฏิบัติงานต้องอยู่ภายในพื้นที่ GPS ที่โรงเรียนกำหนด</span>
-</div>
-</form>
+<!-- ส่วนที่ 4 : ฟอร์มบันทึกลาและไปราชการ -->
+<section id="recordSection" class="hidden">
+  <div class="section-head">
+    <h2 id="recordTitle">บันทึกการลา</h2>
+    <p id="recordSubtitle">บันทึกข้อมูลผ่าน PTS Portal</p>
+  </div>
+  <form id="recordForm">
+    <label for="employeeSelect">ชื่อ-นามสกุลบุคลากร</label>
+    <div class="input-box">
+      <span class="material-icons-round">person</span>
+      <select id="employeeSelect" onchange="updateEmployeeUI()" required></select>
+    </div>
+    <label for="employeePosition">ตำแหน่ง</label>
+    <div class="input-box">
+      <span class="material-icons-round">badge</span>
+      <input id="employeePosition" readonly>
+    </div>
+    <div id="delegateInfo" class="delegate-info hidden"></div>
+    <label for="customDate">วันที่ปฏิบัติราชการ</label>
+    <div class="input-box">
+      <span class="material-icons-round">calendar_month</span>
+      <input id="customDate" type="date" required>
+    </div>
+    <!-- รายละเอียดการลา -->
+    <div id="leaveTypeArea" class="conditional hidden">
+      <label for="leaveType">ประเภทการลา</label>
+      <div class="input-box">
+        <span class="material-icons-round">description</span>
+        <select id="leaveType">
+          <option value="">-- เลือกประเภทการลา --</option>
+          <option value="ลากิจ">ลากิจ</option>
+          <option value="ลาป่วย">ลาป่วย</option>
+          <option value="ลาคลอด">ลาคลอด</option>
+          <option value="ลาไปทำฮัจย์">ลาไปทำฮัจย์</option>
+        </select>
+      </div>
+    </div>
+    <!-- รายละเอียดไปราชการ -->
+    <div id="tripDetailsArea" class="conditional hidden">
+      <label for="tripSubject">เรื่องที่ไปราชการ</label>
+      <div class="input-box">
+        <span class="material-icons-round">description</span>
+        <input id="tripSubject" type="text" maxlength="500" placeholder="ระบุเรื่องไปราชการ">
+      </div>
+      <label for="tripLocation">สถานที่ไปราชการ</label>
+      <div class="input-box">
+        <span class="material-icons-round">location_on</span>
+        <input id="tripLocation" type="text" maxlength="500" placeholder="ระบุสถานที่ไปราชการ">
+      </div>
+    </div>
+    <div class="info-box">
+      <span class="material-icons-round">verified_user</span>
+      <span>ไม่ต้องกรอก PIN ซ้ำ ไม่ต้องสแกนลายนิ้วมือ และไม่ต้องตรวจสอบ GPS</span>
+    </div>
+    <button id="btnRecord" type="submit" class="btn-main">
+      <span class="material-icons-round">save</span>
+      <span id="btnRecordText">บันทึกข้อมูล</span>
+    </button>
+    <button type="button" class="btn-secondary" onclick="returnPortal()">
+      <span class="material-icons-round">arrow_back</span> กลับ PTS Portal
+    </button>
+  </form>
 </section>
-<!-- ส่วนที่ 16 : Dashboard รายงานประจำวัน -->
-<section id="reportTab" class="hidden">
-<div class="section-head">
-<h2>รายงานประจำวัน</h2>
-<p>ตรวจสอบข้อมูลการลงเวลาของบุคลากร</p>
-</div>
-<label for="reportDate">เลือกวันที่รายงาน</label>
-<div class="input-box">
-<span class="material-icons-round">calendar_month</span>
-<input id="reportDate" type="date" onchange="loadDashboard()">
-</div>
-<div id="reportLoading" class="report-loading hidden">
-<div class="spinner"></div>
-<p>กำลังโหลดข้อมูลรายงาน...</p>
-</div>
-<div id="dashboardContent" class="hidden">
-<div class="report-title">
-<h3>สรุปข้อมูลประจำวันที่</h3>
-<p id="displayDate">-</p>
-</div>
-<div class="stat-grid">
-<div class="stat-card green">
-<span class="material-icons-round">check_circle</span>
-<small>มาปฏิบัติงาน</small>
-<strong id="cPresent">0</strong>
-</div>
-<div class="stat-card orange">
-<span class="material-icons-round">event_busy</span>
-<small>ลา</small>
-<strong id="cLeave">0</strong>
-</div>
-<div class="stat-card blue">
-<span class="material-icons-round">flight_takeoff</span>
-<small>ไปราชการ</small>
-<strong id="cTrip">0</strong>
-</div>
-<div class="stat-card red">
-<span class="material-icons-round">person_off</span>
-<small>ไม่ลงเวลา</small>
-<strong id="cAbsent">0</strong>
-</div>
-</div>
-<div class="report-section">
-<h3><span class="material-icons-round">table_chart</span> สรุปตามประเภทบุคลากร</h3>
-<div class="table-wrap">
-<table>
-<thead>
-<tr><th>ประเภท</th><th>มา</th><th>ลา</th><th>ราชการ</th><th>ขาด</th></tr>
-</thead>
-<tbody id="detailsList"></tbody>
-</table>
-</div>
-</div>
-<div class="report-section">
-<h3><span class="material-icons-round">person_search</span> รายชื่อผู้ไม่ลงเวลา</h3>
-<div id="absenteeList"></div>
-</div>
-</div>
-<!-- ส่วนที่ 17 : พิมพ์รายงาน PDF -->
-<div style="margin-top:20px">
-<label for="printReportType">เลือกประเภทรายงานที่ต้องการพิมพ์</label>
-<div class="input-box">
-<span class="material-icons-round">print</span>
-<select id="printReportType">
-<option value="ALL">รายงานรวมทุกประเภท</option>
-<option value="ข้าราชการ">ข้าราชการ</option>
-<option value="พนักงานราชการ">พนักงานราชการ</option>
-<option value="วิทยากรอิสลามศึกษา">วิทยากรอิสลามศึกษา</option>
-<option value="ลูกจ้าง">ลูกจ้าง</option>
-</select>
-</div>
-<button id="btnPrint" type="button" class="btn-print" onclick="printFromWeb()">
-<span class="material-icons-round">print</span> พิมพ์รายงานรายวัน
-</button>
-</div>
+<!-- ส่วนที่ 5 : ลงทะเบียน Biometric ผ่าน Portal -->
+<section id="registerSection" class="hidden">
+  <div class="section-head">
+    <h2>ลงทะเบียน / เปลี่ยนอุปกรณ์</h2>
+    <p>ลงทะเบียน Biometric สำหรับบัญชีของตนเอง</p>
+  </div>
+  <div class="owner-card">
+    <div class="avatar-icon">
+      <span class="material-icons-round">person</span>
+    </div>
+    <div>
+      <h4 id="registerName">-</h4>
+      <p id="registerPosition">-</p>
+    </div>
+  </div>
+  <div class="bio-card">
+    <span class="material-icons-round bio-icon">fingerprint</span>
+    <h3>ลงทะเบียน Biometric</h3>
+    <p>กรุณายืนยันตัวตนด้วยระบบรักษาความปลอดภัยของอุปกรณ์ เช่น ลายนิ้วมือ หรือ Face ID</p>
+    <p>เมื่อลงทะเบียนสำเร็จ ทะเบียนอุปกรณ์เดิมของบัญชีนี้จะถูกแทนที่</p>
+  </div>
+  <button type="button" id="btnRegister" class="btn-main" onclick="registerBiometric()">
+    <span class="material-icons-round">fingerprint</span>
+    ลงทะเบียน Biometric
+  </button>
+  <button type="button" class="btn-secondary" onclick="returnPortal()">
+    <span class="material-icons-round">arrow_back</span> กลับ PTS Portal
+  </button>
+</section>
+<!-- ส่วนที่ 6 : Dashboard และรายงานเดิม -->
+<section id="reportSection" class="hidden">
+  <div class="section-head">
+    <h2>รายงานประจำวัน</h2>
+    <p>ตรวจสอบข้อมูลการลงเวลาของบุคลากร</p>
+  </div>
+  <label for="reportDate">เลือกวันที่รายงาน</label>
+  <div class="input-box">
+    <span class="material-icons-round">calendar_month</span>
+    <input id="reportDate" type="date" onchange="loadDashboard()">
+  </div>
+  <div id="reportLoading" class="report-loading hidden">
+    <div class="spinner"></div>
+    <p>กำลังโหลดข้อมูลรายงาน...</p>
+  </div>
+  <div id="dashboardContent" class="hidden">
+    <div class="report-title">
+      <h3>สรุปข้อมูลประจำวันที่</h3>
+      <p id="displayDate">-</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card green">
+        <span class="material-icons-round">check_circle</span>
+        <small>มาปฏิบัติงาน</small>
+        <strong id="cPresent">0</strong>
+      </div>
+      <div class="stat-card orange">
+        <span class="material-icons-round">event_busy</span>
+        <small>ลา</small>
+        <strong id="cLeave">0</strong>
+      </div>
+      <div class="stat-card blue">
+        <span class="material-icons-round">flight_takeoff</span>
+        <small>ไปราชการ</small>
+        <strong id="cTrip">0</strong>
+      </div>
+      <div class="stat-card red">
+        <span class="material-icons-round">person_off</span>
+        <small>ไม่ลงเวลา</small>
+        <strong id="cAbsent">0</strong>
+      </div>
+    </div>
+    <div class="report-section">
+      <h3><span class="material-icons-round">table_chart</span> สรุปตามประเภทบุคลากร</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ประเภท</th>
+              <th>มา</th>
+              <th>ลา</th>
+              <th>ราชการ</th>
+              <th>ขาด</th>
+            </tr>
+          </thead>
+          <tbody id="detailsList"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="report-section">
+      <h3><span class="material-icons-round">person_search</span> รายชื่อผู้ไม่ลงเวลา</h3>
+      <div id="absenteeList"></div>
+    </div>
+  </div>
+  <label for="printReportType">เลือกประเภทรายงานที่ต้องการพิมพ์</label>
+  <div class="input-box">
+    <span class="material-icons-round">print</span>
+    <select id="printReportType">
+      <option value="ALL">รายงานรวมทุกประเภท</option>
+      <option value="ข้าราชการ">ข้าราชการ</option>
+      <option value="พนักงานราชการ">พนักงานราชการ</option>
+      <option value="วิทยากรอิสลามศึกษา">วิทยากรอิสลามศึกษา</option>
+      <option value="ลูกจ้าง">ลูกจ้าง</option>
+    </select>
+  </div>
+  <button id="btnPrint" type="button" class="btn-print" onclick="printFromWeb()">
+    <span class="material-icons-round">print</span> พิมพ์รายงานรายวัน
+  </button>
+  <button type="button" class="btn-secondary" onclick="returnPortal()">
+    <span class="material-icons-round">arrow_back</span> กลับ PTS Portal
+  </button>
+</section>
+<!-- ส่วนที่ 7 : แสดงผลบันทึกสำเร็จ -->
+<section id="successSection" class="hidden">
+  <div class="result-card">
+    <span class="material-icons-round result-icon">check_circle</span>
+    <h3 id="successTitle">บันทึกสำเร็จ</h3>
+    <p id="successMessage"></p>
+    <p id="successDetails"></p>
+    <button type="button" id="btnRecordAgain" class="btn-main hidden" onclick="recordAgain()">
+      <span class="material-icons-round">add_circle</span> บันทึกรายการเพิ่มเติม
+    </button>
+    <button type="button" id="btnSuccessHome" class="btn-main hidden" onclick="goHome()">
+      <span class="material-icons-round">home</span> กลับหน้า PTS Smart School
+    </button>
+    <button type="button" class="btn-secondary" onclick="returnPortal()">
+      <span class="material-icons-round">arrow_back</span> กลับ PTS Portal
+    </button>
+  </div>
+</section>
+<!-- ส่วนที่ 8 : กรณีไม่มีสิทธิ์หรือ Session หมดอายุ -->
+<section id="errorSection" class="hidden">
+  <div class="error-card">
+    <span class="material-icons-round" style="font-size:60px;color:#be123c">lock</span>
+    <h3>กรุณาเข้าสู่ระบบผ่าน PTS Portal</h3>
+    <p id="errorMessage">ไม่พบข้อมูลการยืนยันตัวตน</p>
+    <button type="button" class="btn-main" onclick="returnPortal()">
+      <span class="material-icons-round">login</span> เข้าสู่ PTS Portal
+    </button>
+    <button type="button" class="btn-secondary" onclick="goHome()">
+      <span class="material-icons-round">home</span> กลับหน้าแรก
+    </button>
+  </div>
 </section>
 </main>
 <footer>ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา</footer>
 </div>
-<!-- ส่วนที่ 18 : หน้าต่างลงทะเบียนและเปลี่ยนเครื่อง -->
-<div id="enrollModal" class="modal-overlay hidden">
-<div class="modal-card">
-<div class="modal-head">
-<h3>ลงทะเบียน / เปลี่ยนเครื่องใหม่</h3>
-<button type="button" class="close-modal" onclick="closeEnrollModal()">
-<span class="material-icons-round">close</span>
-</button>
-</div>
-<p style="font-size:12px;color:#64748b;margin:0 0 14px">
-เลือกชื่อของคุณและกรอก <strong>รหัส PIN 4 หลักส่วนตัว</strong> (รหัสเดียวกับ PTS Portal) เพื่อผูกอุปกรณ์นี้ หากเคยลงทะเบียนเครื่องอื่นไว้ เครื่องเดิมจะถูกยกเลิกสิทธิ์อัตโนมัติ
-</p>
-<label for="enrollEmployee">เลือกชื่อบุคลากร</label>
-<div class="input-box">
-<span class="material-icons-round">person</span>
-<select id="enrollEmployee"></select>
-</div>
-<label for="teacherPinInput">รหัส PIN 4 หลักส่วนตัว</label>
-<div class="input-box">
-<span class="material-icons-round">lock</span>
-<input id="teacherPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="กรอกรหัส PIN 4 หลักของคุณ">
-</div>
-<button type="button" id="btnRegisterBio" class="btn-main" onclick="registerWebAuthnBiometric()">
-<span class="material-icons-round">fingerprint</span> สแกนลายนิ้วมือ / Face ID เพื่อลงทะเบียน
-</button>
-</div>
-</div>
-<!-- ส่วนที่ 19 : หน้าต่าง Loading และข้อความแจ้งเตือน -->
+<!-- ส่วนที่ 9 : หน้าต่างแสดงสถานะการทำงาน -->
 <div id="loading" class="loading-overlay hidden">
-<div class="loading-card">
-<div class="spinner"></div>
-<p id="loadingText">กำลังบันทึกข้อมูล...</p>
-</div>
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <p id="loadingText">กำลังตรวจสอบข้อมูล...</p>
+  </div>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
-<!-- ส่วนที่ 20 : เชื่อมไฟล์ Biometric ส่วนกลาง -->
-<script src="./biometric.js?v=3"></script>
+<script src="./biometric.js?v=4"></script>
 <script>
-/* ส่วนที่ 21 : ตั้งค่าการเชื่อมต่อ Google Apps Script */
-const GAS_API_URL=window.PTSBiometric?PTSBiometric.GAS_API_URL:'https://script.google.com/macros/s/AKfycbzn2-JdsHmL6hcKnZ2C5DUNxTl-2EqJ4HIV6O9zudE8_ygtX6_bwvu8I-XFRJ4-I74k/exec';
-const STORAGE_KEY='PTS_WEBAUTHN_DEVICE_V1';
-let staff=[],busy=false,toastTimer=null,reportRequest=0;
+/* ==========================================
+   ส่วนที่ 10 : ตัวแปรและฟังก์ชันพื้นฐาน
+========================================== */
 const $=id=>document.getElementById(id);
-/* ส่วนที่ 22 : ฟังก์ชันพื้นฐาน */
-function localDateString(d=new Date()){
-  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-}
+let profile=null;
+let staff=[];
+let currentMode='';
+let busy=false;
+let toastTimer=null;
+let reportRequest=0;
+let sessionTimer=null;
+let lastResult=null;
+/* แสดงข้อความแจ้งเตือน */
 function showToast(message,error=false){
   const el=$('toast');
   clearTimeout(toastTimer);
-  el.textContent=String(message);
+  el.textContent=String(message||'');
   el.className='show'+(error?' error':'');
   toastTimer=setTimeout(()=>el.className='',4500);
 }
+/* แสดงหน้าต่างระหว่างประมวลผล */
 function setLoading(state,message){
   busy=state;
   $('loading').classList.toggle('hidden',!state);
-  $('btnPrint').disabled=state;
-  $('btnBioScan').disabled=state;
-  $('btnRegisterBio').disabled=state;
+  ['btnRecord','btnRegister','btnPrint'].forEach(id=>{
+    $(id).disabled=state;
+  });
   if(message)$('loadingText').textContent=message;
 }
+/* ป้องกันข้อความ HTML ที่ไม่ปลอดภัย */
 function escapeHtml(value){
   return String(value==null?'':value).replace(/[&<>"']/g,c=>({
     '&':'&amp;',
@@ -394,316 +408,491 @@ function escapeHtml(value){
     "'":'&#39;'
   }[c]));
 }
-/* ส่วนที่ 23 : เรียกข้อมูลจาก Google Apps Script */
-async function callGasGet(params){
-  const url=new URL(GAS_API_URL);
-  Object.keys(params).forEach(k=>url.searchParams.set(k,params[k]));
-  const res=await fetch(url.toString(),{method:'GET',redirect:'follow'});
-  const json=await res.json();
-  if(!json.success)throw Error(json.message||'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
-  return json;
+/* แสดงวันที่ภาษาไทย */
+function thaiDateText(value){
+  const parts=String(value||'').split('-').map(Number);
+  if(parts.length!==3)return value||'';
+  const months=[
+    'มกราคม','กุมภาพันธ์','มีนาคม',
+    'เมษายน','พฤษภาคม','มิถุนายน',
+    'กรกฎาคม','สิงหาคม','กันยายน',
+    'ตุลาคม','พฤศจิกายน','ธันวาคม'
+  ];
+  return parts[2]+' '+months[parts[1]-1]+' '+(parts[0]+543);
 }
-/* ส่วนที่ 24 : อ่านข้อมูลอุปกรณ์ที่ลงทะเบียน */
-function getSavedCredential(){
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    return raw?JSON.parse(raw):null;
-  }catch(e){
-    return null;
-  }
+/* สลับหน้าฟอร์ม */
+function showSection(id){
+  [
+    'recordSection',
+    'registerSection',
+    'reportSection',
+    'successSection',
+    'errorSection'
+  ].forEach(name=>{
+    $(name).classList.toggle('hidden',name!==id);
+  });
 }
-/* ส่วนที่ 25 : เริ่มต้นระบบ */
-window.addEventListener('load',()=>{
-  const today=window.PTSBiometric?PTSBiometric.localDateString():localDateString();
-  $('customDate').value=today;
-  $('customDate').max=today;
-  $('reportDate').value=today;
-  toggleFields();
-  refreshDeviceUI();
-  loadInitialData();
-});
-/* ส่วนที่ 26 : แสดงข้อมูลเจ้าของอุปกรณ์ */
-function refreshDeviceUI(){
-  const saved=getSavedCredential();
-  const badge=$('deviceStatusBadge');
-  const text=$('deviceStatusText');
-  const card=$('registeredOwnerCard');
-  if(!saved||!saved.name||!saved.credentialId){
-    badge.classList.remove('ready');
-    text.textContent='เครื่องนี้ยังไม่ได้ลงทะเบียนลายนิ้วมือ (กดปุ่มมุมขวาบน)';
-    card.classList.add('hidden');
+/* ==========================================
+   ส่วนที่ 11 : ตรวจสอบ SSO เมื่อเปิดหน้า
+========================================== */
+window.addEventListener('load',initializeSystem);
+async function initializeSystem(){
+  if(!window.PTSBiometric){
+    showAccessError('ไม่พบไฟล์ biometric.js');
     return;
   }
-  badge.classList.add('ready');
-  text.textContent=saved.version===2?'พร้อมสแกนลายนิ้วมือ / Face ID':'กรุณาลงทะเบียนใหม่เพื่อใช้งานระบบ V2';
-  const person=staff.find(p=>p.name===saved.name);
-  $('ownerName').textContent=saved.name;
-  $('ownerPos').textContent=person?(person.position+' ('+person.type+')'):'บุคลากรโรงเรียนบ้านปงตา';
-  card.classList.remove('hidden');
-}
-/* ส่วนที่ 27 : โหลดข้อมูลบุคลากรและโลโก้ */
-async function loadInitialData(){
+  if(!PTSBiometric.hasSsoTicket()){
+    showAccessError('กรุณาเลือกเมนูที่ต้องการจาก PTS Portal');
+    return;
+  }
+  setLoading(true,'กำลังตรวจสอบสิทธิ์จาก PTS Portal...');
   try{
-    const data=await callGasGet({action:'init'});
-    staff=Array.isArray(data.staff)?data.staff:[];
-    populateEmployeeSelects();
-    refreshDeviceUI();
-    const img=$('schoolLogo'),fallback=$('logoFallback');
-    img.onload=()=>{
-      img.style.display='block';
-      fallback.style.display='none';
-    };
-    img.onerror=()=>{
-      img.style.display='none';
-      fallback.style.display='block';
-    };
-    if(data.logo)img.src=data.logo;
+    await PTSBiometric.exchangeSSO();
+    const context=await PTSBiometric.getSsoContext();
+    profile=context;
+    currentMode=context.purpose;
+    staff=Array.isArray(context.teachers)?context.teachers:[];
+    showSessionProfile();
+    const today=PTSBiometric.localDateString();
+    $('customDate').value=today;
+    $('customDate').max=today;
+    $('reportDate').value=today;
+    $('reportDate').max=today;
+    // เลือกหน้าตามวัตถุประสงค์ของบัตรผ่าน
+    if(currentMode==='leave'||currentMode==='trip'){
+      prepareRecordForm();
+    }else if(currentMode==='register'){
+      prepareRegisterForm();
+    }else if(currentMode==='report'){
+      showSection('reportSection');
+    }else{
+      throw Error('ไม่พบสิทธิ์เข้าใช้งานระบบ');
+    }
+    startSessionMonitor();
+    setLoading(false);
+    if(currentMode==='report'){
+      await loadDashboard();
+    }
   }catch(err){
-    showToast(err.message,true);
+    setLoading(false);
+    showAccessError(err.message||'ตรวจสอบสิทธิ์ไม่สำเร็จ');
   }
 }
-/* ส่วนที่ 28 : สร้างรายชื่อบุคลากร */
-function populateEmployeeSelects(){
-  const select=$('enrollEmployee');
-  const saved=getSavedCredential();
-  select.innerHTML='<option value="">-- เลือกบุคลากรที่จะลงทะเบียน --</option>';
+/* แสดงข้อมูลผู้บันทึกและ Role */
+function showSessionProfile(){
+  $('sessionCard').classList.remove('hidden');
+  $('sessionName').textContent='ผู้บันทึก: '+profile.teacherName;
+  const role=$('roleBadge');
+  role.className='role-badge';
+  role.textContent=profile.role||'USER';
+  if(profile.role==='HR'){
+    role.classList.add('hr');
+  }else if(profile.role==='ADMIN'){
+    role.classList.add('admin');
+  }else{
+    role.classList.add('hidden');
+  }
+}
+/* ตรวจสอบ Session ระหว่างเปิดหน้า */
+function startSessionMonitor(){
+  clearInterval(sessionTimer);
+  sessionTimer=setInterval(()=>{
+    if(busy)return;
+    if($('successSection').classList.contains('hidden')===false)return;
+    if(!PTSBiometric.getSsoSession()){
+      showAccessError('Session หมดอายุ กรุณาเข้าจาก PTS Portal ใหม่');
+    }
+  },3000);
+}
+/* แสดงหน้าเมื่อไม่มีสิทธิ์ */
+function showAccessError(message){
+  clearInterval(sessionTimer);
+  ++reportRequest;
+  $('sessionCard').classList.add('hidden');
+  $('errorMessage').textContent=message;
+  showSection('errorSection');
+}
+/* ตรวจสอบข้อผิดพลาดจาก Session */
+function handleError(err){
+  const message=err&&err.message
+    ?err.message:'เกิดข้อผิดพลาด';
+  if(
+    /Session หมดอายุ|เข้าจาก PTS Portal ใหม่|Session ถูกยกเลิก|ไม่พบ Session/.test(message)
+  ){
+    showAccessError(message);
+  }else{
+    showToast(
+      err.name==='NotAllowedError'
+      ?'ยกเลิกการยืนยันตัวตน หรือหมดเวลา'
+      :message,true
+    );
+  }
+}
+/* ==========================================
+   ส่วนที่ 12 : เตรียมฟอร์มตามสิทธิ์
+========================================== */
+function prepareRecordForm(){
+  if(!staff.length){
+    throw Error('ไม่พบข้อมูลบุคลากรในระบบลงเวลา');
+  }
+  const select=$('employeeSelect');
+  select.replaceChildren();
+  // รายชื่อผ่านการกรองสิทธิ์จาก Server แล้ว
   staff.forEach(p=>{
     const opt=document.createElement('option');
     opt.value=p.name;
-    opt.textContent=p.name+(p.hasDevice?' (ลงทะเบียนแล้ว)':' (ยังไม่ลงทะเบียน)');
+    opt.textContent=p.name;
     select.appendChild(opt);
   });
-  if(saved&&staff.some(p=>p.name===saved.name)){
-    select.value=saved.name;
+  // เลือกชื่อตนเองเป็นค่าเริ่มต้น
+  if(staff.some(p=>p.name===profile.teacherName)){
+    select.value=profile.teacherName;
+  }else if(profile.canRecordOthers){
+    select.selectedIndex=-1;
+  }else{
+    throw Error('ไม่พบชื่อของคุณในฐานข้อมูลระบบลงเวลา');
   }
+  // USER ไม่สามารถเปลี่ยนชื่อเป็นบุคลากรอื่น
+  select.disabled=!profile.canRecordOthers;
+  const leave=currentMode==='leave';
+  $('recordTitle').textContent=leave
+    ?'บันทึกการลา':'บันทึกไปราชการ';
+  $('recordSubtitle').textContent=profile.canRecordOthers
+    ?'สามารถบันทึกตนเองหรือบันทึกแทนบุคลากรได้'
+    :'บันทึกข้อมูลของตนเอง';
+  $('leaveTypeArea').classList.toggle('hidden',!leave);
+  $('tripDetailsArea').classList.toggle('hidden',leave);
+  $('leaveType').required=leave;
+  $('tripSubject').required=!leave;
+  $('tripLocation').required=!leave;
+  $('btnRecord').className='btn-main '+(
+    leave?'leave-btn':'trip-btn'
+  );
+  $('btnRecordText').textContent=leave
+    ?'บันทึกการลา':'บันทึกไปราชการ';
+  updateEmployeeUI();
+  showSection('recordSection');
 }
-/* ส่วนที่ 29 : เปิดและปิดหน้าต่างลงทะเบียน */
-function openEnrollModal(){
+/* แสดงตำแหน่งและข้อมูลบันทึกแทน */
+function updateEmployeeUI(){
+  const name=$('employeeSelect').value;
+  const person=staff.find(p=>p.name===name);
+  $('employeePosition').value=person
+    ?person.position||'':'';
+  const delegated=Boolean(
+    name&&profile&&name!==profile.teacherName
+  );
+  $('delegateInfo').classList.toggle('hidden',!delegated);
+  $('delegateInfo').textContent=delegated
+    ?'บันทึกแทน '+name+' โดย '+profile.teacherName
+    :'';
+}
+/* ==========================================
+   ส่วนที่ 13 : บันทึกลาและไปราชการ
+========================================== */
+$('recordForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  saveRecord();
+});
+async function saveRecord(){
   if(busy)return;
-  $('enrollModal').classList.remove('hidden');
-}
-function closeEnrollModal(){
-  $('enrollModal').classList.add('hidden');
-}
-/* ส่วนที่ 30 : ลงทะเบียนอุปกรณ์ด้วย Biometric และ PIN */
-async function registerWebAuthnBiometric(){
-  if(busy)return;
-  const name=$('enrollEmployee').value;
-  const pin=$('teacherPinInput').value.trim();
-  if(!name)return showToast('กรุณาเลือกชื่อบุคลากร',true);
-  if(!/^\d{4}$/.test(pin)){
-    return showToast('กรุณากรอกรหัส PIN 4 หลักของคุณ',true);
-  }
-  if(!window.PTSBiometric||typeof PTSBiometric.enroll!=='function'){
-    return showToast('ไม่พบไฟล์ biometric.js ฉบับใหม่',true);
-  }
-  setLoading(true,'กำลังตรวจสอบ PIN...');
-  try{
-    const result=await PTSBiometric.enroll(
-      name,
-      pin,
-      msg=>$('loadingText').textContent=msg
-    );
-    $('teacherPinInput').value='';
-    closeEnrollModal();
-    refreshDeviceUI();
-    showToast(result.message||'ลงทะเบียนอุปกรณ์สำเร็จ');
-    loadInitialData();
-  }catch(err){
-    showToast(
-      err.name==='NotAllowedError'
-      ?'ยกเลิกการยืนยันตัวตน หรือหมดเวลา'
-      :err.message,
-      true
-    );
-  }finally{
-    setLoading(false);
-  }
-}
-/* ส่วนที่ 31 : บันทึกการปฏิบัติงาน ลา และไปราชการ */
-async function handleWebAuthnAction(){
-  if(busy)return;
-  const saved=getSavedCredential();
-  if(!saved||!saved.name||!saved.credentialId||saved.version!==2){
-    showToast('กรุณาลงทะเบียนอุปกรณ์สำหรับระบบ V2 ก่อน',true);
-    openEnrollModal();
+  if(!['leave','trip'].includes(currentMode)){
+    showAccessError('ไม่มีสิทธิ์ใช้งานเมนูนี้');
     return;
   }
-  if(!window.PTSBiometric||typeof PTSBiometric.submit!=='function'){
-    return showToast('ไม่พบไฟล์ biometric.js ฉบับใหม่',true);
+  const session=PTSBiometric.getSsoSession();
+  if(!session){
+    showAccessError('Session หมดอายุ กรุณาเข้าจาก PTS Portal ใหม่');
+    return;
   }
-  const entryType=selectedType();
+  const name=$('employeeSelect').value;
   const customDate=$('customDate').value;
-  const today=PTSBiometric.localDateString();
+  const leave=currentMode==='leave';
+  const leaveType=$('leaveType').value;
+  const tripSubject=$('tripSubject').value.trim();
+  const tripLocation=$('tripLocation').value.trim();
+  if(!name||!staff.some(p=>p.name===name)){
+    return showToast('กรุณาเลือกชื่อบุคลากร',true);
+  }
+  if(!profile.canRecordOthers&&name!==profile.teacherName){
+    return showToast('ไม่มีสิทธิ์บันทึกแทนบุคลากรอื่น',true);
+  }
   if(!customDate){
     return showToast('กรุณาเลือกวันที่',true);
   }
-  if(customDate>today){
-    return showToast('ไม่อนุญาตให้เลือกวันอนาคต',true);
+  if(customDate>PTSBiometric.localDateString()){
+    return showToast('ไม่สามารถบันทึกวันอนาคต',true);
   }
-  if(entryType==='มาปฏิบัติงาน'&&customDate!==today){
-    return showToast('กรุณาลงเวลามาปฏิบัติงานในวันที่ปัจจุบัน',true);
-  }
-  if(entryType==='ลา'&&!$('leaveType').value){
+  if(leave&&!leaveType){
     return showToast('กรุณาเลือกประเภทการลา',true);
   }
-  if(entryType==='ไปราชการ'&&(!$('tripSubject').value.trim()||!$('tripLocation').value.trim())){
+  if(!leave&&(!tripSubject||!tripLocation)){
     return showToast('กรุณาระบุเรื่องและสถานที่ไปราชการ',true);
   }
-  setLoading(true,'กำลังเตรียมการยืนยันตัวตน...');
+  // ให้ผู้บันทึกยืนยันชื่อและวันที่ก่อนบันทึกแทน
+  if(name!==profile.teacherName){
+    const message='ยืนยันบันทึก'+(
+      leave?'การลา':'ไปราชการ'
+    )+'แทน '+name+'\nวันที่ '+thaiDateText(customDate);
+    if(!window.confirm(message))return;
+  }
+  setLoading(true,'กำลังบันทึกข้อมูล...');
   try{
-    const data={
-      employeeName:saved.name,
-      credentialId:saved.credentialId,
-      entryType:entryType,
+    const result=await PTSBiometric.recordViaSSO({
+      employeeName:name,
+      entryType:leave?'ลา':'ไปราชการ',
       customDate:customDate,
-      leaveType:$('leaveType').value,
-      tripSubject:$('tripSubject').value.trim(),
-      tripLocation:$('tripLocation').value.trim()
-    };
-    const result=await PTSBiometric.submit(
-      data,
-      msg=>$('loadingText').textContent=msg
-    );
-    if(!result||!result.success){
-      throw Error('ไม่ได้รับการยืนยันการบันทึกจากเซิร์ฟเวอร์');
-    }
-    showToast(result.message||'บันทึกสำเร็จ');
-    $('leaveType').value='';
-    $('tripSubject').value='';
-    $('tripLocation').value='';
+      leaveType:leave?leaveType:'',
+      tripSubject:leave?'':tripSubject,
+      tripLocation:leave?'':tripLocation
+    },msg=>{
+      $('loadingText').textContent=msg;
+    });
+    lastResult=result;
+    showRecordSuccess(result);
   }catch(err){
-    showToast(
-      err.name==='NotAllowedError'
-      ?'ยกเลิกการยืนยันตัวตน หรือหมดเวลา'
-      :err.message,
-      true
-    );
-    if(err.code==='REENROLL'){
-      setLoading(false);
-      openEnrollModal();
-    }
+    handleError(err);
   }finally{
     setLoading(false);
   }
 }
-/* ส่วนที่ 32 : ตรวจสอบสถานะการปฏิบัติงาน */
-function selectedType(){
-  const input=document.querySelector('input[name="et"]:checked');
-  return input?input.value:'มาปฏิบัติงาน';
+/* แสดงผลการบันทึกสำเร็จ */
+function showRecordSuccess(result){
+  $('successTitle').textContent='บันทึกสำเร็จ';
+  $('successMessage').textContent=result.message;
+  $('successDetails').textContent=
+    'วันที่ '+thaiDateText(result.recordedDate)+
+    ' | ผู้บันทึก: '+result.recordedBy;
+  $('btnRecordAgain').classList.remove('hidden');
+  $('btnSuccessHome').classList.add('hidden');
+  showSection('successSection');
 }
-/* ส่วนที่ 33 : แสดงช่องกรอกตามสถานะ */
-function toggleFields(){
-  const type=selectedType();
-  const btn=$('btnBioScan');
-  const btnText=$('btnBioText');
-  const gpsText=$('gpsInfoText');
-  $('leaveTypeArea').classList.toggle('hidden',type!=='ลา');
-  $('tripDetailsArea').classList.toggle('hidden',type!=='ไปราชการ');
-  btn.classList.remove('leave-btn','trip-btn');
-  if(type==='มาปฏิบัติงาน'){
-    btnText.textContent='สแกนลายนิ้วมือ / Face ID เพื่อลงเวลา';
-    gpsText.textContent='การมาปฏิบัติงานต้องอยู่ภายในพื้นที่ GPS ที่โรงเรียนกำหนด';
-  }else if(type==='ลา'){
-    btn.classList.add('leave-btn');
-    btnText.textContent='สแกนลายนิ้วมือ / Face ID เพื่อบันทึกการลา';
-    gpsText.textContent='การแจ้งลาสามารถบันทึกได้จากทุกสถานที่ (ไม่จำกัดพิกัด GPS)';
-  }else{
-    btn.classList.add('trip-btn');
-    btnText.textContent='สแกนลายนิ้วมือ / Face ID เพื่อบันทึกไปราชการ';
-    gpsText.textContent='การแจ้งไปราชการสามารถบันทึกได้จากทุกสถานที่ (ไม่จำกัดพิกัด GPS)';
+/* บันทึกบุคลากรรายอื่นเพิ่มเติม */
+async function recordAgain(){
+  if(busy)return;
+  if(!PTSBiometric.getSsoSession()){
+    showAccessError('Session หมดอายุ กรุณาเข้าจาก PTS Portal ใหม่');
+    return;
+  }
+  setLoading(true,'กำลังตรวจสอบสิทธิ์...');
+  try{
+    // โหลดสิทธิ์ล่าสุดก่อนแสดงฟอร์มอีกครั้ง
+    const context=await PTSBiometric.getSsoContext();
+    profile=context;
+    staff=Array.isArray(context.teachers)?context.teachers:[];
+    $('leaveType').value='';
+    $('tripSubject').value='';
+    $('tripLocation').value='';
+    showSessionProfile();
+    prepareRecordForm();
+  }catch(err){
+    handleError(err);
+  }finally{
+    setLoading(false);
   }
 }
-/* ส่วนที่ 34 : สลับแท็บลงเวลาและรายงาน */
-function switchTab(tab){
-  $('attendanceTab').classList.toggle('hidden',tab!=='attendance');
-  $('reportTab').classList.toggle('hidden',tab!=='report');
-  $('tab-attendance').classList.toggle('active',tab==='attendance');
-  $('tab-report').classList.toggle('active',tab==='report');
-  if(tab==='report')loadDashboard();
+/* ==========================================
+   ส่วนที่ 14 : ลงทะเบียน Biometric
+========================================== */
+function prepareRegisterForm(){
+  $('registerName').textContent=profile.teacherName;
+  $('registerPosition').textContent=profile.position||'บุคลากรโรงเรียนบ้านปงตา';
+  showSection('registerSection');
 }
-/* ส่วนที่ 35 : โหลด Dashboard */
+/* ลงทะเบียนโดยใช้สิทธิ์จาก Portal */
+async function registerBiometric(){
+  if(busy)return;
+  if(currentMode!=='register'){
+    showAccessError('ไม่มีสิทธิ์ลงทะเบียนอุปกรณ์');
+    return;
+  }
+  if(!PTSBiometric.getSsoSession()){
+    showAccessError('Session หมดอายุ กรุณาเข้าจาก PTS Portal ใหม่');
+    return;
+  }
+  if(!PTSBiometric.isSupported()){
+    return showToast('กรุณาเปิดผ่าน Chrome หรือ Safari ที่รองรับ Biometric',true);
+  }
+  setLoading(true,'กำลังตรวจสอบสิทธิ์...');
+  try{
+    const result=await PTSBiometric.enrollViaSSO(msg=>{
+      $('loadingText').textContent=msg;
+    });
+    clearInterval(sessionTimer);
+    $('successTitle').textContent='ลงทะเบียนสำเร็จ';
+    $('successMessage').textContent=result.name;
+    $('successDetails').textContent='สามารถกลับหน้าแรกและกดปุ่มสีขาวเพื่อลงเวลาปฏิบัติงานได้';
+    $('btnRecordAgain').classList.add('hidden');
+    $('btnSuccessHome').classList.remove('hidden');
+    showSection('successSection');
+  }catch(err){
+    handleError(err);
+  }finally{
+    setLoading(false);
+  }
+}
+/* ==========================================
+   ส่วนที่ 15 : ติดต่อ API สำหรับรายงาน
+   รักษาโครงสร้าง Dashboard เดิม
+========================================== */
+async function callGasGet(params){
+  if(!PTSBiometric.getSsoSession()||currentMode!=='report'){
+    throw Error('Session หมดอายุ หรือไม่มีสิทธิ์เปิดรายงาน');
+  }
+  const url=new URL(PTSBiometric.GAS_API_URL);
+  Object.keys(params).forEach(k=>{
+    url.searchParams.set(k,params[k]);
+  });
+  const response=await fetch(url.toString(),{
+    method:'GET',
+    redirect:'follow',
+    cache:'no-store',
+    credentials:'omit'
+  });
+  if(!response.ok){
+    throw Error('เซิร์ฟเวอร์ไม่ตอบสนอง');
+  }
+  const data=await response.json();
+  if(!data||!data.success){
+    throw Error((data&&data.message)||'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+  }
+  return data;
+}
+/* ==========================================
+   ส่วนที่ 16 : โหลด Dashboard
+========================================== */
 async function loadDashboard(){
+  if(currentMode!=='report')return;
   const date=$('reportDate').value;
   if(!date)return;
   const request=++reportRequest;
   $('dashboardContent').classList.add('hidden');
   $('reportLoading').classList.remove('hidden');
   try{
-    const data=await callGasGet({action:'dashboard',date:date});
+    const data=await callGasGet({
+      action:'dashboard',
+      date:date
+    });
     if(request!==reportRequest)return;
-    $('displayDate').textContent=data.dateDisplay;
-    $('cPresent').textContent=data.overview['มาปฏิบัติราชการ']||0;
-    $('cLeave').textContent=data.overview['ลา']||0;
-    $('cTrip').textContent=data.overview['ไปราชการ']||0;
-    $('cAbsent').textContent=data.overview['ไม่ลงเวลา']||0;
-    $('detailsList').innerHTML=data.personnelOrder.map(type=>{
-      const d=data.details[type];
+    if(!PTSBiometric.getSsoSession()){
+      throw Error('Session หมดอายุ');
+    }
+    const overview=data.overview||{};
+    const order=Array.isArray(data.personnelOrder)?data.personnelOrder:[];
+    const details=data.details||{};
+    const absentees=data.absentees||{};
+    $('displayDate').textContent=data.dateDisplay||thaiDateText(date);
+    $('cPresent').textContent=overview['มาปฏิบัติราชการ']||0;
+    $('cLeave').textContent=overview['ลา']||0;
+    $('cTrip').textContent=overview['ไปราชการ']||0;
+    $('cAbsent').textContent=overview['ไม่ลงเวลา']||0;
+    $('detailsList').innerHTML=order.map(type=>{
+      const d=details[type];
       if(!d)return '';
       return '<tr><td>'+escapeHtml(type)+'</td>'+
-      '<td><span class="badge green">'+escapeHtml(d.present)+'</span></td>'+
-      '<td><span class="badge orange">'+escapeHtml(d.leave)+'</span></td>'+
-      '<td><span class="badge blue">'+escapeHtml(d.trip)+'</span></td>'+
-      '<td><span class="badge red">'+escapeHtml(d.absent)+'</span></td></tr>';
+        '<td><span class="badge green">'+escapeHtml(d.present||0)+'</span></td>'+
+        '<td><span class="badge orange">'+escapeHtml(d.leave||0)+'</span></td>'+
+        '<td><span class="badge blue">'+escapeHtml(d.trip||0)+'</span></td>'+
+        '<td><span class="badge red">'+escapeHtml(d.absent||0)+'</span></td></tr>';
     }).join('');
     let total=0;
-    const html=data.personnelOrder.map(type=>{
-      const names=data.absentees[type]||[];
+    const html=order.map(type=>{
+      const names=Array.isArray(absentees[type])?absentees[type]:[];
       if(!names.length)return '';
       total+=names.length;
       return '<div class="absent-group"><strong>'+
-      escapeHtml(type)+' ('+names.length+' คน)</strong><p>'+
-      names.map(escapeHtml).join(', ')+'</p></div>';
+        escapeHtml(type)+' ('+names.length+' คน)</strong><p>'+
+        names.map(escapeHtml).join(', ')+'</p></div>';
     }).join('');
     $('absenteeList').innerHTML=total?html:
       '<div class="complete"><span class="material-icons-round">verified</span> ครบทุกคน</div>';
     $('dashboardContent').classList.remove('hidden');
   }catch(err){
-    if(request!==reportRequest)return;
-    showToast(err.message||'โหลด Dashboard ไม่สำเร็จ',true);
+    if(request===reportRequest){
+      handleError(err);
+    }
   }finally{
     if(request===reportRequest){
       $('reportLoading').classList.add('hidden');
     }
   }
 }
-/* ส่วนที่ 36 : พิมพ์รายงาน PDF เปิดแท็บใหม่ */
+/* ==========================================
+   ส่วนที่ 17 : สร้างและเปิดรายงาน PDF
+========================================== */
 async function printFromWeb(){
+  if(busy||currentMode!=='report')return;
   const date=$('reportDate').value;
   const type=$('printReportType').value;
-  if(!date)return showToast('กรุณาเลือกวันที่รายงาน',true);
-  if(busy)return;
-  const pdfWindow=window.open('about:blank','_blank');
-  if(pdfWindow)pdfWindow.opener=null;
+  if(!date){
+    return showToast('กรุณาเลือกวันที่รายงาน',true);
+  }
+  // เปิดแท็บจากการกดปุ่มเพื่อป้องกัน Popup ถูกบล็อก
+  const target=window.open('about:blank','_blank');
+  if(!target){
+    return showToast('กรุณาอนุญาตให้เปิดแท็บใหม่',true);
+  }
+  target.opener=null;
   setLoading(true,'กำลังสร้างรายงาน PDF...');
   try{
-    const res=await callGasGet({
+    const result=await callGasGet({
       action:'print',
       date:date,
       type:type
     });
-    if(!res.url||!/^https:\/\//i.test(res.url)){
-      throw Error('ไม่ได้รับลิงก์รายงาน PDF');
+    if(!PTSBiometric.getSsoSession()){
+      throw Error('Session หมดอายุ');
     }
-    if(pdfWindow){
-      pdfWindow.location.href=res.url;
-    }else{
-      const link=document.createElement('a');
-      link.href=res.url;
-      link.target='_blank';
-      link.rel='noopener noreferrer';
-      link.textContent='เปิดรายงาน PDF';
-      link.style.cssText='display:block;padding:14px;text-align:center;color:#15803d';
-      $('reportTab').appendChild(link);
-      showToast('สร้างรายงานสำเร็จ กรุณากดลิงก์เปิดรายงาน');
+    const url=new URL(result.url);
+    if(
+      url.protocol!=='https:'||
+      !['drive.google.com','docs.google.com'].includes(url.hostname)
+    ){
+      throw Error('URL รายงานไม่ถูกต้อง');
     }
+    if(target.closed){
+      throw Error('แท็บรายงานถูกปิด');
+    }
+    target.location.replace(url.href);
   }catch(err){
-    if(pdfWindow)pdfWindow.close();
-    showToast(err.message||'สร้างรายงานไม่สำเร็จ',true);
+    try{target.close()}catch(e){}
+    handleError(err);
   }finally{
     setLoading(false);
   }
 }
+/* ==========================================
+   ส่วนที่ 18 : กลับ Portal และหน้าแรก
+========================================== */
+async function returnPortal(){
+  if(busy)return;
+  clearInterval(sessionTimer);
+  ++reportRequest;
+  setLoading(true,'กำลังกลับ PTS Portal...');
+  try{
+    if(window.PTSBiometric){
+      await PTSBiometric.logoutSSO();
+    }
+  }catch(e){
+    // ยกเลิก Session ในหน่วยความจำแล้ว
+  }finally{
+    window.location.replace('/PTS/v2/portal/');
+  }
+}
+async function goHome(){
+  if(busy)return;
+  clearInterval(sessionTimer);
+  ++reportRequest;
+  setLoading(true,'กำลังกลับหน้าแรก...');
+  try{
+    if(window.PTSBiometric){
+      await PTSBiometric.logoutSSO();
+    }
+  }catch(e){}finally{
+    window.location.replace('/PTS/v2/');
+  }
+}
+/* ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา */
 </script>
 </body>
 </html>
