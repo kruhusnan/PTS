@@ -530,48 +530,35 @@ function handleError(err){
 }
 /* ==========================================
    ส่วนที่ 12 : เตรียมฟอร์มตามสิทธิ์
-========================================== */
-function prepareRecordForm(){
-  if(!staff.length){
-    throw Error('ไม่พบข้อมูลบุคลากรในระบบลงเวลา');
-  }
-  const select=$('employeeSelect');
-  select.replaceChildren();
-  // รายชื่อผ่านการกรองสิทธิ์จาก Server แล้ว
-  staff.forEach(p=>{
-    const opt=document.createElement('option');
-    opt.value=p.name;
-    opt.textContent=p.name;
-    select.appendChild(opt);
+/* อ่านข้อมูลและกำหนดสิทธิ์บุคลากรอัตโนมัติ */
+function attSsoProfile_(teacherName){
+  const ss=attSsoPortalDb_();
+  const sh=ss.getSheets().find(s=>{
+    return s.getName().trim().toLowerCase()===ATT_SSO.TEACHER_SHEET;
   });
-  // เลือกชื่อตนเองเป็นค่าเริ่มต้น
-  if(staff.some(p=>p.name===profile.teacherName)){
-    select.value=profile.teacherName;
-  }else if(profile.canRecordOthers){
-    select.selectedIndex=-1;
-  }else{
-    throw Error('ไม่พบชื่อของคุณในฐานข้อมูลระบบลงเวลา');
+  if(!sh)throw Error('ไม่พบชีต Teachers ของ PTS Portal');
+  const name=String(teacherName||'').trim();
+  const rows=sh.getDataRange().getDisplayValues();
+  const matches=rows.slice(1).filter(r=>{
+    return String(r[0]||'').trim()===name;
+  });
+  if(!name||matches.length!==1){
+    throw Error('ไม่พบข้อมูลบุคลากรหรือมีชื่อซ้ำ');
   }
-  // USER ไม่สามารถเปลี่ยนชื่อเป็นบุคลากรอื่น
-  select.disabled=!profile.canRecordOthers;
-  const leave=currentMode==='leave';
-  $('recordTitle').textContent=leave
-    ?'บันทึกการลา':'บันทึกไปราชการ';
-  $('recordSubtitle').textContent=profile.canRecordOthers
-    ?'สามารถบันทึกตนเองหรือบันทึกแทนบุคลากรได้'
-    :'บันทึกข้อมูลของตนเอง';
-  $('leaveTypeArea').classList.toggle('hidden',!leave);
-  $('tripDetailsArea').classList.toggle('hidden',leave);
-  $('leaveType').required=leave;
-  $('tripSubject').required=!leave;
-  $('tripLocation').required=!leave;
-  $('btnRecord').className='btn-main '+(
-    leave?'leave-btn':'trip-btn'
-  );
-  $('btnRecordText').textContent=leave
-    ?'บันทึกการลา':'บันทึกไปราชการ';
-  updateEmployeeUI();
-  showSection('recordSection');
+  const row=matches[0];
+  // อ่านสิทธิ์จากคอลัมน์ D
+  let role=String(row[3]||'').trim().toUpperCase();
+  if(!['USER','HR','ADMIN'].includes(role)){
+    role='USER';
+  }
+  // กำหนดสิทธิ์บันทึกแทนอัตโนมัติ
+  const canRecordOthers=role==='ADMIN'||role==='HR';
+  return {
+    teacherName:name,
+    position:String(row[1]||'').trim(),
+    role:role,
+    canRecordOthers:canRecordOthers
+  };
 }
 /* แสดงตำแหน่งและข้อมูลบันทึกแทน */
 function updateEmployeeUI(){
