@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PTS Smart School | โรงเรียนบ้านปงตา</title>
-<!-- ส่วนที่ 1 : Manifest โลโก้ และไอคอนแอป -->
+<!-- ส่วนที่ 1 : Manifest และไอคอนแอป -->
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../icon-192.png">
@@ -71,7 +71,7 @@ a{text-decoration:none;color:inherit}
 <p class="app-name">PTS SMART SCHOOL</p>
 </header>
 <nav class="menu" aria-label="เมนูหลัก">
-<!-- ส่วนที่ 9 : ปุ่มลงเวลาปฏิบัติงาน -->
+<!-- ส่วนที่ 9 : เปิดระบบลงเวลา Biometric เดิม -->
 <a id="attendanceBtn" class="menu-card attendance" href="./attendance/">
 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M2 12a10 10 0 0 1 18-6"/>
@@ -88,7 +88,7 @@ a{text-decoration:none;color:inherit}
 <path d="m9 18 6-6-6-6"/>
 </svg>
 </a>
-<!-- ส่วนที่ 10 : ปุ่มเข้าสู่ PTS Portal -->
+<!-- ส่วนที่ 10 : เปิดระบบ PTS Portal เดิม -->
 <a class="menu-card portal" href="./portal/">
 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -109,41 +109,8 @@ a{text-decoration:none;color:inherit}
 <footer class="footer">เรียนดี ทักษะเด่น เน้นคุณธรรม</footer>
 </div>
 </main>
-<!-- ส่วนที่ 12 : เชื่อมฟังก์ชัน Biometric ส่วนกลาง -->
+<!-- ส่วนที่ 12 : โหลดฟังก์ชัน Biometric ส่วนกลาง -->
 <script src="./attendance/biometric.js"></script>
-<script>
-/* ส่วนที่ 13 : เชื่อมปุ่มหน้าแรกกับ Biometric */
-(function(){
-  'use strict';
-  const btn=document.getElementById('attendanceBtn');
-  let busy=false;
-  btn.addEventListener('click',async function(event){
-    // หากโหลดฟังก์ชันไม่ได้ ให้เปิดหน้าลงเวลาเดิม
-    if(!window.PTSBiometric)return;
-    // ตรวจสอบความพร้อมของอุปกรณ์
-    const ready=window.PTSBiometric.checkReadiness();
-    if(!ready.supported||!ready.registered)return;
-    // ป้องกันการเปิดหน้าลงเวลาและการกดซ้ำ
-    event.preventDefault();
-    if(busy)return;
-    // ให้ผู้ใช้เลือกลงเวลาด่วนหรือเปิดระบบเดิม
-    const quick=confirm('กด ตกลง เพื่อทดสอบ Biometric\nกด ยกเลิก เพื่อเปิดระบบลงเวลา ลา และไปราชการตามเดิม');
-    if(!quick){
-      window.PTSBiometric.openAttendance();
-      return;
-    }
-    busy=true;
-    try{
-      // ทดสอบ Biometric โดยไม่บันทึกข้อมูลลงชีต
-      await window.PTSBiometric.testBiometric();
-    }catch(err){
-      alert('ไม่สามารถเรียก Biometric ได้: '+err.message);
-    }finally{
-      busy=false;
-    }
-  });
-})();
-</script>
 <!-- ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา -->
 </body>
 </html>
