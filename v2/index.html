@@ -5,29 +5,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#881337">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PTS Smart School | โรงเรียนบ้านปงตา</title>
-<!-- โลโก้และไอคอนแอปเดิม -->
-  <link rel="manifest" href="./manifest.json">
+<!-- ส่วนที่ 1 : Manifest โลโก้ และไอคอนแอป -->
+<link rel="manifest" href="./manifest.json">
 <link rel="icon" href="../icon-192.png">
 <link rel="apple-touch-icon" href="../icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ส่วนที่ 1 : ตั้งค่าพื้นฐาน */
+/* ส่วนที่ 2 : ตั้งค่าพื้นฐาน */
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;width:100%}
 body{font-family:'Sarabun',sans-serif;color:#fff;background:linear-gradient(135deg,#881337 0%,#9f1239 50%,#be123c 100%);-webkit-tap-highlight-color:transparent}
 a{text-decoration:none;color:inherit}
-/* ส่วนที่ 2 : จัดวางหน้าแรก */
+/* ส่วนที่ 3 : จัดวางหน้าแรก */
 .app{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 20px;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
 .container{width:100%;max-width:400px;text-align:center}
-/* ส่วนที่ 3 : โลโก้และชื่อโรงเรียน */
+/* ส่วนที่ 4 : โลโก้และชื่อโรงเรียน */
 .header{margin-bottom:28px}
 .logo{width:96px;height:96px;object-fit:contain;border-radius:50%;background:#fff;padding:5px;box-shadow:0 8px 25px #0002;margin-bottom:12px}
 .school-name{font-size:26px;font-weight:700;margin:0 0 5px;line-height:1.5}
 .app-name{font-size:14px;font-weight:600;letter-spacing:1.5px;color:#fecdd3;margin:0}
-/* ส่วนที่ 4 : ปุ่มเมนูหลัก */
+/* ส่วนที่ 5 : ปุ่มเมนูหลัก */
 .menu{display:flex;flex-direction:column;gap:16px}
 .menu-card{display:flex;align-items:center;gap:16px;width:100%;min-height:108px;padding:20px;border-radius:18px;text-align:left;transition:transform .15s,box-shadow .15s;box-shadow:0 8px 24px #00000012;touch-action:manipulation}
 .menu-card:active{transform:scale(.97)}
@@ -42,9 +43,9 @@ a{text-decoration:none;color:inherit}
 .attendance .menu-desc{color:#64748b}
 .portal .menu-desc{color:#fecdd3}
 .arrow{width:18px;height:18px;flex-shrink:0}
-/* ส่วนที่ 5 : ข้อความด้านล่าง */
+/* ส่วนที่ 6 : ข้อความด้านล่าง */
 .footer{margin-top:28px;color:#fecdd3;font-size:13px;line-height:1.8}
-/* ส่วนที่ 6 : รองรับหน้าจอขนาดเล็ก */
+/* ส่วนที่ 7 : รองรับหน้าจอขนาดเล็ก */
 @media(max-width:360px){
 .school-name{font-size:23px}
 .menu-card{padding:16px;gap:12px}
@@ -61,7 +62,7 @@ a{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
-<!-- ส่วนที่ 7 : หน้าแรก PTS Smart School -->
+<!-- ส่วนที่ 8 : หน้าแรก PTS Smart School -->
 <main class="app">
 <div class="container">
 <header class="header">
@@ -70,7 +71,7 @@ a{text-decoration:none;color:inherit}
 <p class="app-name">PTS SMART SCHOOL</p>
 </header>
 <nav class="menu" aria-label="เมนูหลัก">
-<!-- ปุ่มลงเวลา : เปิดหน้า Biometric โดยตรง ไม่ใช้ iframe -->
+<!-- ส่วนที่ 9 : ปุ่มลงเวลาปฏิบัติงาน -->
 <a class="menu-card attendance" href="./attendance/">
 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M2 12a10 10 0 0 1 18-6"/>
@@ -83,9 +84,11 @@ a{text-decoration:none;color:inherit}
 <h2 class="menu-title">ลงเวลาปฏิบัติงาน</h2>
 <p class="menu-desc">ยืนยันตัวตนด้วย Biometric</p>
 </div>
-<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"/>
+</svg>
 </a>
-<!-- ปุ่ม Portal : เปิดระบบ PIN เดิม -->
+<!-- ส่วนที่ 10 : ปุ่มเข้าสู่ PTS Portal -->
 <a class="menu-card portal" href="./portal/">
 <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -97,11 +100,16 @@ a{text-decoration:none;color:inherit}
 <h2 class="menu-title">เข้าสู่ PTS Portal</h2>
 <p class="menu-desc">ระบบสารสนเทศบุคลากร</p>
 </div>
-<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"/>
+</svg>
 </a>
 </nav>
+<!-- ส่วนที่ 11 : คติพจน์โรงเรียน -->
 <footer class="footer">เรียนดี ทักษะเด่น เน้นคุณธรรม</footer>
 </div>
 </main>
+<!-- ส่วนที่ 12 : เชื่อมฟังก์ชัน Biometric ส่วนกลาง -->
+<script src="./attendance/biometric.js"></script>
 </body>
 </html>
