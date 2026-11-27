@@ -1,1 +1,1008 @@
 
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>ระบบลงเวลา V.3 | โรงเรียนบ้านปงตา</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#be123c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="../../icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+/* ส่วนที่ 1 : ตั้งค่าพื้นฐาน */
+:root{--pink:#e91e63;--pink-dark:#c2185b;--pink-light:#fce4ec;--text:#334155;--muted:#78909c;--border:#e2e8f0;--shadow:0 10px 30px rgba(194,24,91,.12)}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;min-height:100vh;background:linear-gradient(145deg,#fff1f5,#f8bbd0);font-family:'Kanit',sans-serif;color:var(--text);display:flex;justify-content:center;align-items:flex-start;-webkit-tap-highlight-color:transparent}
+button,input,select{font-family:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hidden{display:none!important}
+.app{width:100%;max-width:490px;background:white;border-radius:24px;overflow:hidden;box-shadow:var(--shadow);min-height:500px;position:relative}
+/* ส่วนที่ 2 : ส่วนหัวและโลโก้โรงเรียน */
+.header{background:linear-gradient(135deg,#ad1457,#e91e63,#f06292);color:white;text-align:center;padding:24px 16px 37px;border-radius:0 0 26px 26px;position:relative}
+.header-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:15px}
+.header-btn{background:#ffffff25;color:white;border:1px solid #ffffff50;border-radius:20px;padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;text-decoration:none}
+.header-btn .material-icons-round{font-size:17px}
+.brand-icon{width:68px;height:68px;border-radius:50%;background:white;padding:6px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center}
+.brand-icon .material-icons-round{font-size:30px;color:#c2185b}
+.header h1{font-size:22px;margin:0;font-weight:600}
+.header p{font-size:13px;margin:4px 0 0;opacity:.94;font-weight:300}
+.version-label{display:inline-block;margin-top:8px;padding:3px 12px;border:1px solid #ffffff50;border-radius:20px;font-size:11px;background:#ffffff20}
+/* ส่วนที่ 3 : แสดงชื่อบุคลากรจาก SSO */
+.session-card{display:flex;align-items:center;gap:10px;background:#fff1f5;border:1px solid #fbcfe8;border-radius:14px;padding:12px;margin:0 0 16px}
+.session-avatar{width:42px;height:42px;flex-shrink:0;border-radius:50%;background:#fce7f3;color:#be185d;display:flex;align-items:center;justify-content:center}
+.session-info{flex:1;min-width:0}
+.session-info small{font-size:11px;color:#be185d}
+.session-info strong{display:block;font-size:15px;overflow-wrap:anywhere}
+.session-info p{margin:2px 0 0;color:#64748b;font-size:12px}
+.session-verified{color:#16a34a}
+.auth-notice{padding:24px 10px;text-align:center}
+.auth-notice .material-icons-round{font-size:48px;color:#db2777}
+.auth-notice h2{font-size:19px;margin:10px 0 4px}
+.auth-notice p{font-size:13px;color:#64748b;line-height:1.7}
+.portal-link{display:block;background:#be185d;color:white;border-radius:13px;padding:12px;text-decoration:none;text-align:center;margin-top:18px}
+/* ส่วนที่ 4 : แท็บลงเวลาและรายงาน */
+.tabs{display:flex;gap:6px;background:white;border-radius:50px;margin:-22px 22px 22px;padding:5px;position:relative;box-shadow:0 5px 18px rgba(0,0,0,.12)}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;border:0;border-radius:40px;background:transparent;color:#64748b;font-size:14px}
+.tab .material-icons-round{font-size:19px}
+.tab.active{color:white;background:linear-gradient(135deg,#e91e63,#ad1457);box-shadow:0 4px 12px rgba(233,30,99,.25)}
+main{padding:0 20px 10px}
+.section-head{margin-bottom:18px}
+.section-head h2{font-size:18px;font-weight:600;margin:0}
+.section-head p{font-size:12px;color:var(--muted);margin:3px 0 0}
+/* ส่วนที่ 5 : ช่องกรอกข้อมูล */
+label{display:block;font-size:14px;font-weight:500;margin:0 0 8px}
+.input-box{display:flex;align-items:center;gap:9px;border:1px solid var(--border);background:#f8fafc;border-radius:13px;padding:0 12px;margin-bottom:16px;transition:border-color .2s,box-shadow .2s}
+.input-box:focus-within{border-color:var(--pink);box-shadow:0 0 0 3px rgba(233,30,99,.08);background:white}
+.input-box .material-icons-round{color:#db2777;font-size:21px}
+.input-box input,.input-box select{width:100%;min-width:0;padding:13px 0;border:0;outline:0;background:transparent;font-size:14px;color:var(--text)}
+.input-box input[readonly]{color:#64748b}
+/* ส่วนที่ 6 : สถานะการปฏิบัติงาน */
+.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 20px}
+.status-choice{margin:0;cursor:pointer}
+.status-choice input{position:absolute;opacity:0;width:1px;height:1px}
+.status-choice input:focus-visible+.status-content{outline:3px solid #f9a8d4}
+.status-content{border:1px solid #e5e7eb;border-radius:13px;min-height:83px;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;padding:8px 3px;text-align:center;font-size:12px;background:white;transition:.2s}
+.status-content .material-icons-round{font-size:24px}
+.present .status-content{color:#15803d;background:#f0fdf4;border-color:#bbf7d0}
+.leave .status-content{color:#b45309;background:#fffbeb;border-color:#fde68a}
+.trip .status-content{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}
+.present input:checked+.status-content{background:#16a34a;border-color:#16a34a;color:white}
+.leave input:checked+.status-content{background:#f59e0b;border-color:#f59e0b;color:white}
+.trip input:checked+.status-content{background:#2563eb;border-color:#2563eb;color:white}
+.conditional{padding:14px 13px 1px;border:1px solid #fbcfe8;border-radius:14px;background:#fff7fa;margin:0 0 18px}
+.notice{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:11px 12px;color:#92400e;font-size:12px;line-height:1.7;margin-bottom:16px}
+/* ส่วนที่ 7 : กล่อง Biometric */
+.bio-card{border:2px dashed #f472b6;border-radius:18px;background:#fff7fa;padding:18px 16px;text-align:center;margin-bottom:16px}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 12px;border-radius:20px;background:#fce7f3;color:#be185d;margin-bottom:14px}
+.status-pill.ready{background:#dcfce7;color:#15803d}
+.owner-card{background:white;border:1.5px solid #22c55e;border-radius:14px;padding:12px;margin-bottom:14px;text-align:left;display:flex;align-items:center;gap:10px}
+.owner-card .avatar-icon{width:44px;height:44px;border-radius:50%;background:#dcfce7;color:#16a34a;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.owner-card h4{margin:0;font-size:15px;color:#15803d}
+.owner-card p{margin:2px 0 0;font-size:12px;color:#64748b}
+.btn-bio-trigger{width:100%;border:0;border-radius:14px;min-height:54px;color:white;font-size:15px;font-weight:500;background:linear-gradient(135deg,#ec4899,#be185d);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(194,24,91,.22)}
+.btn-bio-trigger.leave-btn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.btn-bio-trigger.trip-btn{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.gps-info{display:flex;align-items:center;gap:8px;padding:11px 12px;background:#eff6ff;color:#1d4ed8;border-radius:11px;font-size:11px;line-height:1.5;margin-bottom:17px}
+.gps-info .material-icons-round{font-size:21px;flex-shrink:0}
+.btn-main,.btn-print{width:100%;border:0;border-radius:14px;min-height:51px;color:white;font-size:15px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-main{background:linear-gradient(135deg,#ec4899,#be185d);box-shadow:0 6px 18px rgba(194,24,91,.18)}
+.btn-print{margin-top:17px;background:linear-gradient(135deg,#22c55e,#15803d);box-shadow:0 6px 18px rgba(22,163,74,.18)}
+.btn-main:active,.btn-print:active,.btn-bio-trigger:active{transform:scale(.985)}
+/* ส่วนที่ 8 : Dashboard และรายงาน */
+.report-title{text-align:center;margin:10px 0 16px}
+.report-title h3{font-size:14px;font-weight:400;margin:0;color:#64748b}
+.report-title p{color:#be185d;font-size:16px;margin:2px 0;font-weight:600}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:16px}
+.stat-card{min-width:0;border-radius:13px;padding:10px 3px;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;border:1px solid transparent}
+.stat-card .material-icons-round{font-size:21px}
+.stat-card small{font-size:10px;font-weight:400}
+.stat-card strong{font-size:22px;font-weight:600}
+.stat-card.green{color:#15803d;background:#f0fdf4;border-color:#bbf7d0}
+.stat-card.orange{color:#b45309;background:#fffbeb;border-color:#fde68a}
+.stat-card.blue{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}
+.stat-card.red{color:#dc2626;background:#fef2f2;border-color:#fecaca}
+.report-section{margin-bottom:20px}
+.report-section h3{display:flex;align-items:center;gap:6px;font-size:14px;margin:0 0 10px;color:#334155}
+.report-section h3 .material-icons-round{font-size:19px;color:#db2777}
+.table-wrap{overflow-x:auto;border:1px solid #e2e8f0;border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:410px;font-size:11px}
+th{background:#fff1f2;color:#9d174d;padding:10px 5px;text-align:center}
+td{padding:10px 5px;border-bottom:1px solid #f1f5f9;text-align:center}
+td:first-child,th:first-child{text-align:left;padding-left:10px}
+tr:last-child td{border-bottom:0}
+.badge{display:inline-block;border-radius:20px;min-width:29px;padding:3px 5px;font-size:11px;color:white}
+.badge.green{background:#16a34a}
+.badge.orange{background:#f59e0b}
+.badge.blue{background:#2563eb}
+.badge.red{background:#ef4444}
+.badge.purple{background:#9333ea}
+.absent-group{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:9px}
+.absent-group strong{display:block;background:#f8fafc;padding:9px 12px;font-size:12px;color:#475569}
+.absent-group p{font-size:12px;line-height:1.8;padding:11px 12px;margin:0;color:#64748b}
+.complete{display:flex;align-items:center;justify-content:center;gap:8px;padding:18px;border-radius:12px;color:#15803d;background:#f0fdf4;font-size:14px}
+/* ส่วนที่ 9 : สรุปข้อมูลใบลา V.3 */
+.leave-summary{border:1px solid #fde68a;background:#fffbeb;border-radius:14px;padding:14px;margin-bottom:20px}
+.leave-summary h3{font-size:14px;color:#92400e;margin:0 0 12px;display:flex;align-items:center;gap:6px}
+.leave-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.leave-mini{background:white;border:1px solid #fde68a;border-radius:11px;padding:9px;text-align:center}
+.leave-mini small{display:block;font-size:11px;color:#92400e}
+.leave-mini strong{display:block;font-size:24px;color:#b45309}
+.leave-type-list{margin-top:12px}
+.leave-type-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid #fde68a;color:#92400e}
+.leave-type-row:last-child{border-bottom:0}
+.conflict-card{display:flex;align-items:center;gap:9px;border:1px solid #ddd6fe;background:#f5f3ff;color:#6d28d9;padding:12px;border-radius:12px;margin-bottom:18px;font-size:13px}
+.conflict-card strong{margin-left:auto;font-size:20px}
+/* ส่วนที่ 10 : Loading และหน้าต่างลงทะเบียน */
+.report-loading{text-align:center;padding:30px 0;color:#64748b;font-size:12px}
+.spinner{width:37px;height:37px;border-radius:50%;border:4px solid #fce7f3;border-top-color:#db2777;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay,.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;z-index:2000;padding:16px}
+.loading-overlay{background:rgba(255,255,255,.88);z-index:3000}
+.loading-card,.modal-card{background:white;padding:24px;border-radius:22px;text-align:center;width:100%;max-width:400px;box-shadow:0 15px 40px rgba(0,0,0,.2)}
+.modal-card{text-align:left;max-height:90vh;overflow:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+.modal-head h3{font-size:18px;color:#be185d;margin:0}
+.close-modal{background:#f1f5f9;color:#64748b;border:0;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#15803d;color:white;border-radius:13px;padding:13px 18px;max-width:90%;width:max-content;opacity:0;pointer-events:none;z-index:4000;transition:.25s;font-size:14px;text-align:center;box-shadow:0 5px 20px #0002}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.error{background:#dc2626}
+/* ส่วนที่ 11 : ส่วนท้ายและรองรับมือถือ */
+footer{padding:15px 8px;background:#fff1f5;color:#9d174d;font-size:10px;text-align:center;border-top:1px solid #fce7f3}
+@media(max-width:520px){
+body{padding:0;background:white}
+.app{max-width:100%;min-height:100vh;border-radius:0;box-shadow:none}
+.header{border-radius:0 0 24px 24px}
+main{padding:0 16px 10px}
+.tabs{margin:-22px 16px 22px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- ส่วนที่ 12 : หัวระบบลงเวลา -->
+<header class="header">
+<div class="header-actions">
+<a href="../" class="header-btn">
+<span class="material-icons-round">home</span> หน้าหลัก
+</a>
+<button id="enrollMenuBtn" type="button" class="header-btn hidden" onclick="openEnrollModal()">
+<span class="material-icons-round">fingerprint</span> ลงทะเบียน / เปลี่ยนเครื่อง
+</button>
+</div>
+<div class="brand-icon">
+<img id="schoolLogo" src="../../icon-192.png" alt="โลโก้โรงเรียน" style="width:100%;height:100%;object-fit:contain;border-radius:50%">
+</div>
+<h1>โรงเรียนบ้านปงตา</h1>
+<p>ระบบลงเวลาปฏิบัติราชการดิจิทัล</p>
+<span class="version-label">VERSION 3.0 | ระบบทดสอบ</span>
+</header>
+<!-- ส่วนที่ 13 : เมนูลงเวลาและรายงาน -->
+<nav id="mainTabs" class="tabs hidden">
+<button type="button" id="tab-attendance" class="tab active" onclick="switchTab('attendance')">
+<span class="material-icons-round">fingerprint</span> ลงเวลา
+</button>
+<button type="button" id="tab-report" class="tab" onclick="switchTab('report')">
+<span class="material-icons-round">assessment</span> รายงาน
+</button>
+</nav>
+<main>
+<!-- ส่วนที่ 14 : ตรวจสอบสิทธิ์ก่อนเข้าระบบ -->
+<section id="authNotice" class="auth-notice">
+<span class="material-icons-round">lock</span>
+<h2>PTS Smart School V.3</h2>
+<p id="authMessage">กำลังตรวจสอบสิทธิ์การเข้าสู่ระบบ...</p>
+<a href="../portal/" class="portal-link">เข้าสู่ PTS Portal</a>
+</section>
+<div id="protectedContent" class="hidden">
+<!-- ส่วนที่ 15 : แสดงชื่อบุคลากรจาก SSO -->
+<div class="session-card">
+<div class="session-avatar">
+<span class="material-icons-round">person</span>
+</div>
+<div class="session-info">
+<small>เข้าสู่ระบบผ่าน PTS Portal</small>
+<strong id="sessionName">-</strong>
+<p id="sessionPosition">-</p>
+</div>
+<span class="material-icons-round session-verified">verified_user</span>
+</div>
+<!-- ส่วนที่ 16 : แบบฟอร์มลงเวลา -->
+<section id="attendanceTab">
+<div class="section-head">
+<h2>บันทึกการปฏิบัติราชการ</h2>
+<p>ยืนยันตัวตนด้วย Biometric ผ่าน SSO</p>
+</div>
+<div class="notice">
+ระบบทดสอบ V.3 — ยังไม่เปิดบันทึกเวลาปฏิบัติราชการจริง
+</div>
+<form id="attendanceForm" onsubmit="event.preventDefault()">
+<label for="customDate">วันที่ปฏิบัติราชการ</label>
+<div class="input-box">
+<span class="material-icons-round">calendar_month</span>
+<input id="customDate" type="date" required>
+</div>
+<label>สถานะการลงเวลา</label>
+<div class="status-grid">
+<label class="status-choice present">
+<input type="radio" name="et" value="มาปฏิบัติงาน" checked onchange="toggleFields()">
+<span class="status-content">
+<span class="material-icons-round">how_to_reg</span>
+<span>มาปฏิบัติงาน</span>
+</span>
+</label>
+<label class="status-choice leave">
+<input type="radio" name="et" value="ลา" onchange="toggleFields()">
+<span class="status-content">
+<span class="material-icons-round">event_busy</span>
+<span>ลา</span>
+</span>
+</label>
+<label class="status-choice trip">
+<input type="radio" name="et" value="ไปราชการ" onchange="toggleFields()">
+<span class="status-content">
+<span class="material-icons-round">flight_takeoff</span>
+<span>ไปราชการ</span>
+</span>
+</label>
+</div>
+<!-- ส่วนที่ 17 : รายละเอียดการแจ้งลา -->
+<div id="leaveTypeArea" class="conditional hidden">
+<label for="leaveType">ประเภทการลา</label>
+<div class="input-box">
+<span class="material-icons-round">description</span>
+<select id="leaveType">
+<option value="">-- เลือกประเภทการลา --</option>
+<option value="ลากิจ">ลากิจ</option>
+<option value="ลาป่วย">ลาป่วย</option>
+<option value="ลาคลอด">ลาคลอด</option>
+<option value="ลาไปทำฮัจย์">ลาไปทำฮัจย์</option>
+</select>
+</div>
+<p style="font-size:11px;color:#92400e">การแจ้งลาไม่ใช่การอนุมัติใบลา ระบบจะตรวจสอบใบลาที่ได้รับอนุมัติแยกต่างหาก</p>
+</div>
+<!-- ส่วนที่ 18 : รายละเอียดการไปราชการ -->
+<div id="tripDetailsArea" class="conditional hidden">
+<label for="tripSubject">เรื่องที่ไปราชการ</label>
+<div class="input-box">
+<span class="material-icons-round">description</span>
+<input id="tripSubject" type="text" maxlength="500" placeholder="ระบุเรื่องที่ไปราชการ">
+</div>
+<label for="tripLocation">สถานที่ไปราชการ</label>
+<div class="input-box">
+<span class="material-icons-round">location_on</span>
+<input id="tripLocation" type="text" maxlength="500" placeholder="ระบุสถานที่ไปราชการ">
+</div>
+</div>
+<!-- ส่วนที่ 19 : ปุ่ม Biometric -->
+<div class="bio-card">
+<div id="deviceStatusBadge" class="status-pill">
+<span class="material-icons-round" style="font-size:15px">fingerprint</span>
+<span id="deviceStatusText">กำลังตรวจสอบสถานะอุปกรณ์...</span>
+</div>
+<div id="registeredOwnerCard" class="owner-card hidden">
+<div class="avatar-icon">
+<span class="material-icons-round">verified_user</span>
+</div>
+<div>
+<h4 id="ownerName">-</h4>
+<p id="ownerPos">-</p>
+</div>
+</div>
+<button type="button" id="btnBioScan" class="btn-bio-trigger" onclick="handleWebAuthnAction()">
+<span class="material-icons-round" style="font-size:24px">fingerprint</span>
+<span id="btnBioText">สแกนลายนิ้วมือ / Face ID</span>
+</button>
+</div>
+<div id="gpsInfo" class="gps-info">
+<span class="material-icons-round">my_location</span>
+<span id="gpsInfoText">การมาปฏิบัติงานต้องอยู่ภายในพื้นที่ GPS ที่โรงเรียนกำหนด</span>
+</div>
+</form>
+</section>
+<!-- ส่วนที่ 20 : Dashboard รายงานประจำวัน -->
+<section id="reportTab" class="hidden">
+<div class="section-head">
+<h2>รายงานประจำวัน</h2>
+<p>ข้อมูลลงเวลาและข้อมูลใบลาที่เชื่อมโยงจาก V.3</p>
+</div>
+<label for="reportDate">เลือกวันที่รายงาน</label>
+<div class="input-box">
+<span class="material-icons-round">calendar_month</span>
+<input id="reportDate" type="date" onchange="loadDashboard()">
+</div>
+<div id="reportLoading" class="report-loading hidden">
+<div class="spinner"></div>
+<p>กำลังโหลดข้อมูลรายงาน...</p>
+</div>
+<div id="dashboardContent" class="hidden">
+<div class="report-title">
+<h3>สรุปข้อมูลประจำวันที่</h3>
+<p id="displayDate">-</p>
+</div>
+<div id="reportNotice" class="notice hidden"></div>
+<div class="stat-grid">
+<div class="stat-card green">
+<span class="material-icons-round">check_circle</span>
+<small>มาปฏิบัติงาน</small>
+<strong id="cPresent">0</strong>
+</div>
+<div class="stat-card orange">
+<span class="material-icons-round">event_busy</span>
+<small>ลา</small>
+<strong id="cLeave">0</strong>
+</div>
+<div class="stat-card blue">
+<span class="material-icons-round">flight_takeoff</span>
+<small>ไปราชการ</small>
+<strong id="cTrip">0</strong>
+</div>
+<div class="stat-card red">
+<span class="material-icons-round">person_off</span>
+<small>ไม่ลงเวลา</small>
+<strong id="cAbsent">0</strong>
+</div>
+</div>
+<!-- ส่วนที่ 21 : ข้อมูลขัดแย้ง -->
+<div class="conflict-card">
+<span class="material-icons-round">warning_amber</span>
+<span>ข้อมูลขัดแย้ง</span>
+<strong id="cConflict">0</strong>
+<small>คน</small>
+</div>
+<!-- ส่วนที่ 22 : สรุปข้อมูลใบลา -->
+<div class="leave-summary">
+<h3>
+<span class="material-icons-round">fact_check</span>
+ข้อมูลการลา
+</h3>
+<div class="leave-summary-grid">
+<div class="leave-mini">
+<small>ใบลาที่อนุมัติแล้ว</small>
+<strong id="approvedLeave">0</strong>
+<small>คน</small>
+</div>
+<div class="leave-mini">
+<small>แจ้งลา ยังไม่ยืนยัน</small>
+<strong id="manualLeave">0</strong>
+<small>คน</small>
+</div>
+</div>
+<div id="leaveTypeList" class="leave-type-list"></div>
+</div>
+<!-- ส่วนที่ 23 : สรุปตามประเภทบุคลากร -->
+<div class="report-section">
+<h3>
+<span class="material-icons-round">table_chart</span>
+สรุปตามประเภทบุคลากร
+</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>ประเภท</th>
+<th>มา</th>
+<th>ลา</th>
+<th>ราชการ</th>
+<th>ไม่ลงเวลา</th>
+<th>ขัดแย้ง</th>
+</tr>
+</thead>
+<tbody id="detailsList"></tbody>
+</table>
+</div>
+</div>
+<!-- ส่วนที่ 24 : รายชื่อผู้ไม่ลงเวลา -->
+<div class="report-section">
+<h3>
+<span class="material-icons-round">person_search</span>
+รายชื่อผู้ไม่ลงเวลา
+</h3>
+<div id="absenteeList"></div>
+</div>
+</div>
+<!-- ส่วนที่ 25 : พิมพ์รายงาน PDF -->
+<div style="margin-top:20px">
+<label for="printReportType">เลือกประเภทรายงานที่ต้องการพิมพ์</label>
+<div class="input-box">
+<span class="material-icons-round">print</span>
+<select id="printReportType">
+<option value="ALL">รายงานรวมทุกประเภท</option>
+<option value="ข้าราชการ">ข้าราชการ</option>
+<option value="พนักงานราชการ">พนักงานราชการ</option>
+<option value="วิทยากรอิสลามศึกษา">วิทยากรอิสลามศึกษา</option>
+<option value="ลูกจ้าง">ลูกจ้าง</option>
+</select>
+</div>
+<button id="btnPrint" type="button" class="btn-print" onclick="printFromWeb()">
+<span class="material-icons-round">print</span>
+พิมพ์รายงานรายวัน
+</button>
+<div id="pdfLinkArea"></div>
+</div>
+</section>
+<!-- ส่วนที่ 26 : ออกจากระบบ -->
+<button type="button" onclick="logoutAttendance()" style="width:100%;padding:12px;margin:14px 0;border:1px solid #fbcfe8;border-radius:12px;background:#fff1f5;color:#be185d;display:flex;align-items:center;justify-content:center;gap:7px">
+<span class="material-icons-round">logout</span>
+ออกจากระบบลงเวลา
+</button>
+</div>
+</main>
+<footer>ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา</footer>
+</div>
+<!-- ส่วนที่ 27 : หน้าต่างลงทะเบียนอุปกรณ์ -->
+<div id="enrollModal" class="modal-overlay hidden">
+<div class="modal-card">
+<div class="modal-head">
+<h3>ลงทะเบียน / เปลี่ยนเครื่องใหม่</h3>
+<button type="button" class="close-modal" onclick="closeEnrollModal()" aria-label="ปิด">
+<span class="material-icons-round">close</span>
+</button>
+</div>
+<p style="font-size:12px;color:#64748b;margin:0 0 14px">
+ชื่อบุคลากรจะถูกกำหนดจาก PTS Portal โดยอัตโนมัติ กรุณากรอก PIN ส่วนตัวเพื่อยืนยันการลงทะเบียน
+</p>
+<div class="notice">ใช้สำหรับอุปกรณ์และบัญชีที่กำหนดไว้ทดสอบ V.3 เท่านั้น</div>
+<label for="enrollEmployee">ชื่อบุคลากร</label>
+<div class="input-box">
+<span class="material-icons-round">person</span>
+<input id="enrollEmployee" type="text" readonly>
+</div>
+<label for="teacherPinInput">รหัส PIN 4 หลักส่วนตัว</label>
+<div class="input-box">
+<span class="material-icons-round">lock</span>
+<input id="teacherPinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="กรอกรหัส PIN 4 หลัก">
+</div>
+<button type="button" id="btnRegisterBio" class="btn-main" onclick="registerWebAuthnBiometric()">
+<span class="material-icons-round">fingerprint</span>
+ยืนยันตัวตนเพื่อลงทะเบียน
+</button>
+</div>
+</div>
+<!-- ส่วนที่ 28 : Loading และข้อความแจ้งเตือน -->
+<div id="loading" class="loading-overlay hidden">
+<div class="loading-card">
+<div class="spinner"></div>
+<p id="loadingText">กำลังดำเนินการ...</p>
+</div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<!-- ส่วนที่ 29 : โหลด SSO ก่อน Biometric -->
+<script src="../sso.js?v=3.0.1"></script>
+<script src="./biometric.js?v=3.0.1"></script>
+<script>
+/* ส่วนที่ 30 : ตัวแปรส่วนกลาง */
+const sso=window.PTSSSO;
+const bio=window.PTSBiometric;
+const $=id=>document.getElementById(id);
+let staff=[],busy=false,toastTimer=null,reportRequest=0;
+let authenticated=false;
+const PERSONNEL_ORDER=[
+  'ข้าราชการ',
+  'พนักงานราชการ',
+  'วิทยากรอิสลามศึกษา',
+  'ลูกจ้าง'
+];
+const LEAVE_LABELS={
+  SICK:'ลาป่วย',
+  PERSONAL:'ลากิจ',
+  MATERNITY:'ลาคลอด',
+  SPOUSE:'ลาไปช่วยเหลือภริยาที่คลอดบุตร',
+  ORDINATION_HAJJ:'ลาอุปสมบท / ไปประกอบพิธีฮัจย์'
+};
+/* ส่วนที่ 31 : ฟังก์ชันพื้นฐาน */
+function localDateString(){
+  return bio.localDateString();
+}
+function count(value){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>=0?n:0;
+}
+function escapeHtml(value){
+  return String(value==null?'':value).replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+function showToast(message,error=false){
+  const el=$('toast');
+  clearTimeout(toastTimer);
+  el.textContent=String(message);
+  el.className='show'+(error?' error':'');
+  toastTimer=setTimeout(()=>el.className='',4500);
+}
+function setLoading(state,message){
+  busy=state;
+  $('loading').classList.toggle('hidden',!state);
+  ['btnPrint','btnBioScan','btnRegisterBio','enrollMenuBtn'].forEach(id=>{
+    $(id).disabled=state;
+  });
+  if(message)$('loadingText').textContent=message;
+}
+/* ส่วนที่ 32 : ตรวจสอบ SSO Session */
+function requireSession(){
+  const session=sso&&sso.getSession();
+  if(!authenticated||!session){
+    const error=Error('กรุณาเข้าสู่ระบบผ่าน PTS Portal V.3');
+    error.code='SSO_REQUIRED';
+    throw error;
+  }
+  return session;
+}
+function showAuthNotice(message){
+  authenticated=false;
+  reportRequest++;
+  staff=[];
+  $('authNotice').classList.remove('hidden');
+  $('authMessage').textContent=message;
+  $('protectedContent').classList.add('hidden');
+  $('mainTabs').classList.add('hidden');
+  $('enrollMenuBtn').classList.add('hidden');
+  $('dashboardContent').classList.add('hidden');
+  $('reportLoading').classList.add('hidden');
+  $('sessionName').textContent='';
+  $('sessionPosition').textContent='';
+  $('ownerName').textContent='';
+  $('ownerPos').textContent='';
+  $('enrollEmployee').value='';
+  $('detailsList').replaceChildren();
+  $('absenteeList').replaceChildren();
+  $('leaveTypeList').replaceChildren();
+  $('pdfLinkArea').replaceChildren();
+  $('leaveType').value='';
+  $('tripSubject').value='';
+  $('tripLocation').value='';
+  $('teacherPinInput').value='';
+  closeEnrollModal();
+  if(bio)bio.clearPrepared();
+}
+function handleError(error){
+  if(error.code==='SSO_REQUIRED'||!sso||!sso.getSession()){
+    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ Portal ใหม่');
+    return;
+  }
+  showToast(
+    error.name==='NotAllowedError'
+    ?'ยกเลิกการยืนยันตัวตน หรือหมดเวลา'
+    :error.message||'ไม่สามารถดำเนินการได้',
+    true
+  );
+}
+/* ส่วนที่ 33 : ติดต่อ API ผ่าน SSO */
+async function callGas(params){
+  requireSession();
+  return sso.post(params);
+}
+/* ส่วนที่ 34 : เริ่มต้นระบบ */
+async function initialize(){
+  if(!sso||!bio){
+    showAuthNotice('ไม่สามารถโหลดไฟล์ระบบ V.3 ได้');
+    return;
+  }
+  try{
+    const session=await sso.init();
+    if(!session){
+      showAuthNotice('กรุณาเข้าสู่ PTS Portal เพื่อยืนยันตัวตน');
+      return;
+    }
+    authenticated=true;
+    const today=localDateString();
+    $('customDate').value=today;
+    $('customDate').max=today;
+    $('reportDate').value=today;
+    await loadInitialData();
+    requireSession();
+    $('authNotice').classList.add('hidden');
+    $('protectedContent').classList.remove('hidden');
+    $('mainTabs').classList.remove('hidden');
+    $('enrollMenuBtn').classList.remove('hidden');
+    toggleFields();
+    refreshDeviceUI();
+  }catch(error){
+    showAuthNotice(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้');
+  }
+}
+/* ส่วนที่ 35 : โหลดข้อมูลบุคลากรและโลโก้ */
+async function loadInitialData(){
+  const session=requireSession();
+  const data=await callGas({action:'init'});
+  if(data.version!=='V.3'||
+     data.testMode!==true||
+     data.teacherName!==session.teacherName){
+    throw Error('ข้อมูลระบบหรือ Session ไม่ตรงกับ V.3');
+  }
+  requireSession();
+  staff=Array.isArray(data.staff)?data.staff:[];
+  const person=staff.find(p=>p.name===session.teacherName);
+  $('sessionName').textContent=session.teacherName;
+  $('sessionPosition').textContent=person
+    ?[person.position,person.type].filter(Boolean).join(' • ')
+    :'บุคลากรโรงเรียนบ้านปงตา';
+  $('enrollEmployee').value=session.teacherName;
+  if(data.logo){
+    try{
+      const logo=new URL(data.logo);
+      if(logo.protocol==='https:'){
+        $('schoolLogo').src=logo.href;
+      }
+    }catch(e){}
+  }
+  refreshDeviceUI();
+}
+/* ส่วนที่ 36 : ตรวจสอบทะเบียนอุปกรณ์ V.3 */
+function getSavedCredential(){
+  return bio?bio.getSavedCredential():null;
+}
+function refreshDeviceUI(){
+  const session=sso&&sso.getSession();
+  const saved=getSavedCredential();
+  const badge=$('deviceStatusBadge');
+  const text=$('deviceStatusText');
+  const card=$('registeredOwnerCard');
+  const registered=Boolean(
+    session&&saved&&saved.version===3&&
+    saved.name===session.teacherName&&saved.credentialId
+  );
+  badge.classList.toggle('ready',registered);
+  card.classList.toggle('hidden',!registered);
+  if(!registered){
+    text.textContent='อุปกรณ์นี้ยังไม่ได้ลงทะเบียนสำหรับ V.3';
+    $('ownerName').textContent='';
+    $('ownerPos').textContent='';
+    return;
+  }
+  const person=staff.find(p=>p.name===session.teacherName);
+  text.textContent='พบข้อมูลทะเบียนอุปกรณ์ V.3';
+  $('ownerName').textContent=session.teacherName;
+  $('ownerPos').textContent=person
+    ?[person.position,person.type].filter(Boolean).join(' • ')
+    :'บุคลากรโรงเรียนบ้านปงตา';
+}
+/* ส่วนที่ 37 : เปิดและปิดหน้าต่างลงทะเบียน */
+function openEnrollModal(){
+  if(busy)return;
+  try{
+    const session=requireSession();
+    $('enrollEmployee').value=session.teacherName;
+    $('teacherPinInput').value='';
+    $('enrollModal').classList.remove('hidden');
+  }catch(error){
+    handleError(error);
+  }
+}
+function closeEnrollModal(){
+  $('teacherPinInput').value='';
+  $('enrollModal').classList.add('hidden');
+}
+/* ส่วนที่ 38 : ลงทะเบียนอุปกรณ์ด้วย SSO และ PIN */
+async function registerWebAuthnBiometric(){
+  if(busy)return;
+  let pin=$('teacherPinInput').value.trim();
+  if(!/^\d{4}$/.test(pin)){
+    return showToast('กรุณากรอก PIN 4 หลัก',true);
+  }
+  try{
+    const session=requireSession();
+    if(!confirm('ยืนยันการลงทะเบียนอุปกรณ์สำหรับบัญชีทดสอบ V.3 เท่านั้น?')){
+      return;
+    }
+    setLoading(true,'กำลังตรวจสอบ PIN...');
+    $('teacherPinInput').value='';
+    const result=await bio.enroll(
+      session.teacherName,
+      pin,
+      message=>$('loadingText').textContent=message
+    );
+    requireSession();
+    closeEnrollModal();
+    refreshDeviceUI();
+    showToast(result.message||'ลงทะเบียนอุปกรณ์ V.3 สำเร็จ');
+    await loadInitialData();
+  }catch(error){
+    handleError(error);
+  }finally{
+    pin='';
+    $('teacherPinInput').value='';
+    setLoading(false);
+  }
+}
+/* ส่วนที่ 39 : ตรวจสอบสถานะการปฏิบัติงาน */
+function selectedType(){
+  const input=document.querySelector('input[name="et"]:checked');
+  return input?input.value:'มาปฏิบัติงาน';
+}
+function toggleFields(){
+  const type=selectedType();
+  const btn=$('btnBioScan');
+  $('leaveTypeArea').classList.toggle('hidden',type!=='ลา');
+  $('tripDetailsArea').classList.toggle('hidden',type!=='ไปราชการ');
+  btn.classList.remove('leave-btn','trip-btn');
+  if(type==='มาปฏิบัติงาน'){
+    $('customDate').value=localDateString();
+    $('customDate').disabled=true;
+    $('btnBioText').textContent='ยืนยันตัวตนเพื่อลงเวลา';
+    $('gpsInfoText').textContent='การมาปฏิบัติงานต้องอยู่ภายในพื้นที่ GPS ที่โรงเรียนกำหนด';
+  }else if(type==='ลา'){
+    $('customDate').disabled=false;
+    btn.classList.add('leave-btn');
+    $('btnBioText').textContent='ยืนยันตัวตนเพื่อแจ้งลา';
+    $('gpsInfoText').textContent='การแจ้งลาไม่ใช่การอนุมัติใบลา';
+  }else{
+    $('customDate').disabled=false;
+    btn.classList.add('trip-btn');
+    $('btnBioText').textContent='ยืนยันตัวตนเพื่อแจ้งไปราชการ';
+    $('gpsInfoText').textContent='การแจ้งไปราชการต้องเป็นไปตามข้อมูลการปฏิบัติราชการจริง';
+  }
+}
+/* ส่วนที่ 40 : ตรวจสอบแบบฟอร์มในโหมดทดสอบ */
+function handleWebAuthnAction(){
+  if(busy)return;
+  try{
+    requireSession();
+    const saved=getSavedCredential();
+    if(!saved||saved.version!==3){
+      showToast('กรุณาลงทะเบียนอุปกรณ์ V.3 ก่อน',true);
+      openEnrollModal();
+      return;
+    }
+    const type=selectedType();
+    const date=$('customDate').value;
+    const today=localDateString();
+    if(!date){
+      throw Error('กรุณาเลือกวันที่');
+    }
+    if(date>today){
+      throw Error('ไม่อนุญาตให้เลือกวันอนาคต');
+    }
+    if(type==='มาปฏิบัติงาน'&&date!==today){
+      throw Error('กรุณาใช้วันที่ปัจจุบัน');
+    }
+    if(type==='ลา'&&!$('leaveType').value){
+      throw Error('กรุณาเลือกประเภทการลา');
+    }
+    if(type==='ไปราชการ'&&(
+      !$('tripSubject').value.trim()||
+      !$('tripLocation').value.trim()
+    )){
+      throw Error('กรุณาระบุเรื่องและสถานที่ไปราชการ');
+    }
+    // ระงับการส่งคำขอบันทึกจริงระหว่างพัฒนา V.3
+    showToast('ตรวจสอบแบบฟอร์มผ่าน — ยังไม่ได้บันทึกข้อมูล');
+  }catch(error){
+    handleError(error);
+  }
+}
+/* ส่วนที่ 41 : สลับแท็บ */
+function switchTab(tab){
+  if(busy)return;
+  try{
+    requireSession();
+    $('attendanceTab').classList.toggle('hidden',tab!=='attendance');
+    $('reportTab').classList.toggle('hidden',tab!=='report');
+    $('tab-attendance').classList.toggle('active',tab==='attendance');
+    $('tab-report').classList.toggle('active',tab==='report');
+    if(tab==='report'){
+      loadDashboard();
+    }else{
+      reportRequest++;
+    }
+  }catch(error){
+    handleError(error);
+  }
+}
+/* ส่วนที่ 42 : แสดงข้อมูลสรุปการลา */
+function renderLeaveSummary(summary){
+  const data=summary||{};
+  $('approvedLeave').textContent=count(data.approved);
+  $('manualLeave').textContent=count(data.manual);
+  const list=$('leaveTypeList');
+  list.replaceChildren();
+  const types=data.byType||{};
+  Object.keys(LEAVE_LABELS).forEach(code=>{
+    const row=document.createElement('div');
+    row.className='leave-type-row';
+    const name=document.createElement('span');
+    name.textContent=LEAVE_LABELS[code];
+    const total=document.createElement('strong');
+    const value=types[code]??types[LEAVE_LABELS[code]]??0;
+    total.textContent=count(value)+' คน';
+    row.append(name,total);
+    list.appendChild(row);
+  });
+}
+/* ส่วนที่ 43 : โหลด Dashboard V.3 */
+async function loadDashboard(){
+  const date=$('reportDate').value;
+  if(!date)return;
+  const request=++reportRequest;
+  $('dashboardContent').classList.add('hidden');
+  $('reportLoading').classList.remove('hidden');
+  $('pdfLinkArea').replaceChildren();
+  try{
+    const data=await callGas({
+      action:'dashboard',
+      date:date
+    });
+    if(request!==reportRequest)return;
+    requireSession();
+    if(data.version!=='V.3'||data.testMode!==true){
+      throw Error('รายงานไม่ใช่ข้อมูลทดสอบ V.3');
+    }
+    if(!data.overview||!data.details){
+      throw Error('ข้อมูลรายงานไม่สมบูรณ์');
+    }
+    const overview=data.overview;
+    const conflict=count(
+      data.conflictSummary?.total??overview['ข้อมูลขัดแย้ง']
+    );
+    $('displayDate').textContent=data.dateDisplay||date;
+    $('cPresent').textContent=count(overview['มาปฏิบัติราชการ']);
+    $('cLeave').textContent=count(overview['ลา']);
+    $('cTrip').textContent=count(overview['ไปราชการ']);
+    $('cAbsent').textContent=count(overview['ไม่ลงเวลา']);
+    $('cConflict').textContent=conflict;
+    renderLeaveSummary(data.leaveSummary);
+    // แสดงคำเตือนเกี่ยวกับความครบถ้วนของข้อมูล
+    const notices=[];
+    if(data.isHoliday){
+      notices.push('วันที่เลือกเป็นวันหยุด');
+    }
+    if(data.leaveSyncEnabled!==true){
+      notices.push('ยังไม่ได้เชื่อมโยงข้อมูลใบลา');
+    }
+    if(data.reviewRequired||conflict>0){
+      notices.push('มีข้อมูลที่ต้องตรวจสอบก่อนนำรายงานไปใช้');
+    }
+    if(count(data.warningCount)>0){
+      notices.push('พบรายการแจ้งเตือน '+count(data.warningCount)+' รายการ');
+    }
+    $('reportNotice').textContent=notices.join(' • ');
+    $('reportNotice').classList.toggle('hidden',!notices.length);
+    const order=Array.isArray(data.personnelOrder)
+      ?data.personnelOrder
+      :PERSONNEL_ORDER;
+    // สรุปข้อมูลแต่ละประเภทบุคลากร
+    $('detailsList').innerHTML=order.map(type=>{
+      const d=data.details[type];
+      if(!d)return '';
+      return '<tr><td>'+escapeHtml(type)+'</td>'+
+        '<td><span class="badge green">'+count(d.present)+'</span></td>'+
+        '<td><span class="badge orange">'+count(d.leave??(count(d.approvedLeave)+count(d.manualLeave)))+'</span></td>'+
+        '<td><span class="badge blue">'+count(d.trip)+'</span></td>'+
+        '<td><span class="badge red">'+count(d.absent)+'</span></td>'+
+        '<td><span class="badge purple">'+count(d.conflict)+'</span></td></tr>';
+    }).join('');
+    // แสดงรายชื่อผู้ไม่ลงเวลา
+    let total=0;
+    const absentees=data.absentees||{};
+    const html=order.map(type=>{
+      const names=Array.isArray(absentees[type])
+        ?absentees[type]:[];
+      if(!names.length)return '';
+      total+=names.length;
+      return '<div class="absent-group"><strong>'+
+        escapeHtml(type)+' ('+names.length+' คน)</strong><p>'+
+        names.map(escapeHtml).join(', ')+'</p></div>';
+    }).join('');
+    if(total){
+      $('absenteeList').innerHTML=html;
+    }else{
+      $('absenteeList').innerHTML=
+        '<div class="complete"><span class="material-icons-round">info</span>'+
+        'ไม่พบรายชื่อผู้ไม่ลงเวลาในรายงาน</div>';
+    }
+    $('dashboardContent').classList.remove('hidden');
+  }catch(error){
+    if(request===reportRequest){
+      handleError(error);
+    }
+  }finally{
+    if(request===reportRequest){
+      $('reportLoading').classList.add('hidden');
+    }
+  }
+}
+/* ส่วนที่ 44 : ตรวจสอบ URL รายงาน PDF */
+function validReportURL(value){
+  try{
+    const url=new URL(value);
+    if(url.protocol!=='https:')return false;
+    if(url.hostname==='docs.google.com'){
+      return /^\/spreadsheets\/d\/[A-Za-z0-9_-]+\/export$/.test(url.pathname)&&
+        url.searchParams.get('format')==='pdf';
+    }
+    if(url.hostname==='drive.google.com'){
+      return /^\/file\/d\/[A-Za-z0-9_-]+\/view\/?$/.test(url.pathname);
+    }
+    return false;
+  }catch(error){
+    return false;
+  }
+}
+/* ส่วนที่ 45 : พิมพ์รายงาน PDF เปิดแท็บใหม่ */
+async function printFromWeb(){
+  if(busy)return;
+  const date=$('reportDate').value;
+  const type=$('printReportType').value;
+  if(!date){
+    return showToast('กรุณาเลือกวันที่รายงาน',true);
+  }
+  try{
+    requireSession();
+  }catch(error){
+    return handleError(error);
+  }
+  const pdfWindow=window.open('about:blank','_blank');
+  if(pdfWindow){
+    try{pdfWindow.opener=null}catch(e){}
+  }
+  setLoading(true,'กำลังจัดทำรายงาน PDF ทดสอบ...');
+  try{
+    const result=await callGas({
+      action:'print',
+      date:date,
+      type:type
+    });
+    requireSession();
+    if(!validReportURL(result.url)){
+      throw Error('ไม่ได้รับ URL รายงานที่ถูกต้อง');
+    }
+    if(pdfWindow&&!pdfWindow.closed){
+      pdfWindow.location.replace(result.url);
+    }else{
+      const link=document.createElement('a');
+      link.href=result.url;
+      link.target='_blank';
+      link.rel='noopener noreferrer';
+      link.textContent='เปิดรายงาน PDF';
+      link.style.cssText='display:block;padding:14px;text-align:center;color:#15803d';
+      $('pdfLinkArea').replaceChildren(link);
+      showToast('กรุณากดลิงก์เปิดรายงาน PDF');
+    }
+  }catch(error){
+    if(pdfWindow){
+      try{pdfWindow.close()}catch(e){}
+    }
+    handleError(error);
+  }finally{
+    setLoading(false);
+  }
+}
+/* ส่วนที่ 46 : ออกจากระบบลงเวลา */
+async function logoutAttendance(){
+  if(busy||!sso)return;
+  setLoading(true,'กำลังออกจากระบบ...');
+  try{
+    await sso.logout();
+    showAuthNotice('ออกจากระบบแล้ว กรุณาเข้าสู่ Portal ใหม่');
+  }catch(error){
+    showAuthNotice('ออกจากระบบในอุปกรณ์แล้ว แต่ยังยืนยันการยกเลิก Session บนเซิร์ฟเวอร์ไม่ได้');
+  }finally{
+    setLoading(false);
+  }
+}
+/* ส่วนที่ 47 : ตรวจสอบ Session เมื่อกลับมาใช้งาน */
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&authenticated&&!sso.getSession()){
+    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  }
+});
+setInterval(()=>{
+  if(authenticated&&!sso.getSession()){
+    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  }
+},15000);
+/* ส่วนที่ 48 : เริ่มต้นระบบ */
+window.addEventListener('load',initialize);
+</script>
+</body>
+</html>
+
