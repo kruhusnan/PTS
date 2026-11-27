@@ -646,7 +646,7 @@ function showDirectRegistration(){
   $('deviceStatusBadge').classList.remove('ready');
   $('deviceStatusText').textContent='กรุณาลงทะเบียนอุปกรณ์';
   toggleFields();
-  $('attendanceForm').inert=true;
+$('attendanceForm').inert=false;
 }
 /* ส่วนที่ 35 : โหลดข้อมูลบุคลากรและโลโก้ */
 async function loadInitialData(){
