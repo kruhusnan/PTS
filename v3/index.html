@@ -92,7 +92,7 @@ button{font-family:inherit;cursor:pointer}
 <h1 class="school-name">โรงเรียนบ้านปงตา</h1>
 <p class="app-name">PTS SMART SCHOOL</p>
 <span class="version">VERSION 3.0</span>
-<p class="test-label">ระบบทดสอบ V.3</p>
+<p class="test-label">ระบบทดสอบ V.3 • 3.0.4</p>
 </header>
 <!-- ส่วนที่ 10 : ข้อมูลบุคลากรจาก SSO -->
 <div id="userCard" class="user-card" hidden>
@@ -158,9 +158,9 @@ button{font-family:inherit;cursor:pointer}
 </footer>
 </div>
 </main>
-<!-- ส่วนที่ 13 : โหลด SSO และ Biometric เวอร์ชันล่าสุด -->
-<script src="./sso.js?v=3.0.3"></script>
-<script src="./attendance/biometric.js?v=3.0.3"></script>
+<!-- ส่วนที่ 13 : โหลดระบบ SSO ก่อน Biometric -->
+<script src="/PTS/v3/sso.js?v=3.0.4"></script>
+<script src="/PTS/v3/attendance/biometric.js?v=3.0.4"></script>
 <script>
 (function(){
   'use strict';
@@ -185,93 +185,79 @@ button{font-family:inherit;cursor:pointer}
     status.hidden=true;
     status.textContent='';
   }
-  /* ส่วนที่ 16 : แสดงข้อมูลจาก Session */
+  /* ส่วนที่ 16 : หน้าแรกพร้อมใช้งานโดยไม่ต้องมี SSO */
   function renderSession(session){
     userCard.hidden=!session;
     teacherName.textContent=session?session.teacherName:'';
-    btn.setAttribute('aria-disabled',session?'false':'true');
-    if(!session){
-      desc.textContent='กรุณาเข้าสู่ PTS Portal ก่อน';
-      return;
-    }
-    desc.textContent=bio&&bio.hasRegisteredDevice()
-      ?'ยืนยันตัวตนด้วย Biometric'
-      :'กรุณาลงทะเบียนอุปกรณ์ก่อน';
+    btn.setAttribute('aria-disabled',ready?'false':'true');
+    desc.textContent='ยืนยันตัวตนด้วย Biometric';
   }
-  /* ส่วนที่ 17 : เริ่มต้นระบบ SSO และตรวจสอบ JavaScript */
+  /* ส่วนที่ 17 : เริ่มต้นระบบและตรวจสอบโมดูล */
   async function initialize(){
-    if(!sso){
-      console.error('PTS V.3: ไม่พบ window.PTSSSO');
-      show('ไม่สามารถโหลด sso.js ได้','error');
+    if(!bio||typeof bio.directBiometricTest!=='function'){
+      show('ไม่สามารถโหลด biometric.js รุ่น 3.0.4 ได้','error');
       return;
     }
-    if(!bio){
-      console.error('PTS V.3: ไม่พบ window.PTSBiometric');
-      show('ไม่สามารถโหลด biometric.js ได้','error');
+    ready=true;
+    renderSession(null);
+    if(!sso){
+      show('ไม่สามารถโหลด sso.js ได้ (ยังสามารถทดสอบ Biometric โดยตรงได้)','error');
       return;
     }
     try{
       const session=await sso.init();
       renderSession(session);
-      ready=true;
-      if(!session){
-        show('กรุณาเข้าสู่ PTS Portal เพื่อยืนยันตัวตน','info');
-        return;
-      }
       hideStatus();
-      if(bio.hasRegisteredDevice()){
-        bio.prime().catch(()=>{});
-      }
     }catch(error){
-      ready=true;
       renderSession(null);
-      console.error('PTS V.3 SSO:',error);
-      show(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้','error');
+      show(error.message||'ไม่สามารถตรวจสอบ SSO ได้','error');
     }
   }
-  /* ส่วนที่ 18 : ตรวจสอบสิทธิ์ก่อนเปิดหน้าลงทะเบียน */
+  /* ส่วนที่ 18 : ลงทะเบียนครั้งแรกต้องยืนยัน PIN ผ่าน Portal */
   registerLink.addEventListener('click',function(event){
-    if(!ready||!sso||!sso.getSession()){
+    if(!sso||!sso.getSession()){
       event.preventDefault();
-      show('กรุณาเข้าสู่ PTS Portal ก่อนลงทะเบียน','info');
+      location.href='./portal/';
     }
   });
-  /* ส่วนที่ 19 : เตรียม Challenge เมื่อกลับเข้าสู่หน้าเว็บ */
+  /* ส่วนที่ 19 : ตรวจสอบสถานะเมื่อกลับเข้าหน้าเว็บ */
   document.addEventListener('visibilitychange',function(){
-    if(!document.hidden&&ready&&sso&&bio){
-      const session=sso.getSession();
-      renderSession(session);
-      if(session&&!busy){
-        bio.prime().catch(()=>{});
-      }
+    if(!document.hidden&&ready&&sso){
+      renderSession(sso.getSession());
     }
   });
-  /* ส่วนที่ 20 : ป้องกันการใช้ Session ที่หมดอายุ */
+  /* ส่วนที่ 20 : ตรวจสอบ Session ที่หมดอายุ */
   setInterval(function(){
-    if(document.hidden||!ready||!sso||!bio)return;
-    const session=sso.getSession();
-    if(!session){
-      renderSession(null);
-      bio.clearPrepared();
-      return;
-    }
-    if(!busy){
-      bio.prime().catch(()=>{});
+    if(!document.hidden&&ready&&sso){
+      renderSession(sso.getSession());
     }
   },60000);
-  /* ส่วนที่ 21 : เมนูลงเวลาปฏิบัติงาน */
-  btn.addEventListener('click',function(event){
+  /* ส่วนที่ 21 : ทดสอบ Biometric และ GPS โดยไม่ต้องเข้า Portal */
+  btn.addEventListener('click',async function(event){
     event.preventDefault();
     if(!ready||busy)return;
-    if(!sso||!sso.getSession()){
-      show('กรุณาเข้าสู่ PTS Portal ก่อน','info');
+    if(!bio.getDirectCredential()){
+      show('กรุณาเข้าสู่ PTS Portal และลงทะเบียนอุปกรณ์ V.3 ก่อนใช้งานครั้งแรก','info');
       return;
     }
-    /* ระงับการบันทึกเวลาจริงระหว่างทดสอบ V.3 */
-    show(
-      'ระบบอยู่ระหว่างทดสอบ V.3 ยังไม่เปิดบันทึกเวลาปฏิบัติงานจริง',
-      'info'
-    );
+    busy=true;
+    btn.setAttribute('aria-busy','true');
+    try{
+      const result=await bio.directBiometricTest(
+        message=>show(message,'info')
+      );
+      show('✓ '+result.message,'success');
+    }catch(error){
+      show(
+        error.name==='NotAllowedError'
+          ?'ยกเลิกหรือหมดเวลายืนยันตัวตน'
+          :error.message||'ทดสอบไม่สำเร็จ',
+        'error'
+      );
+    }finally{
+      busy=false;
+      btn.removeAttribute('aria-busy');
+    }
   });
   /* ส่วนที่ 22 : ออกจากระบบลงเวลา */
   logoutBtn.addEventListener('click',async function(){
