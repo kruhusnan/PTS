@@ -147,10 +147,10 @@ button{font-family:inherit;cursor:pointer}
 </svg>
 </a>
 </nav>
-<!-- ส่วนที่ 12 : สถานะและลิงก์ลงทะเบียน -->
+<!-- ส่วนที่ 12 : สถานะและลิงก์ลงทะเบียนโดยตรง -->
 <div id="quickStatus" class="status" role="status" aria-live="polite" hidden></div>
 <footer class="footer">
-<a id="registerLink" class="full-system" href="./attendance/">ลงทะเบียน</a><br>
+<a id="registerLink" class="full-system" href="https://kruhusnan.github.io/PTS/v3/attendance/">ลงทะเบียน</a><br>
 เรียนดี ทักษะเด่น เน้นคุณธรรม
 <div class="developer">ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา</div>
 </footer>
@@ -211,16 +211,13 @@ button{font-family:inherit;cursor:pointer}
       renderSession(null);
     }
   }
-  /* ส่วนที่ 18 : ลงทะเบียนครั้งแรกต้องยืนยัน PIN ผ่าน Portal */
+  /* ส่วนที่ 18 : เปิดหน้าลงทะเบียนโดยตรง ไม่เปลี่ยนเส้นทางไป Portal */
   registerLink.addEventListener('click',function(event){
     if(busy){
       event.preventDefault();
       return;
     }
-    if(!sso||!sso.getSession()){
-      event.preventDefault();
-      location.href='./portal/';
-    }
+    /* ใช้ URL จาก href โดยตรง ไม่ตรวจสอบ SSO ที่หน้าแรก */
   });
   /* ส่วนที่ 19 : ตรวจสอบสถานะเมื่อกลับเข้าหน้าเว็บ */
   document.addEventListener('visibilitychange',function(){
