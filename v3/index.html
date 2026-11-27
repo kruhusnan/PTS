@@ -1,1 +1,293 @@
 
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#881337">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="referrer" content="no-referrer">
+<title>PTS Smart School V.3 | โรงเรียนบ้านปงตา</title>
+<!-- ส่วนที่ 1 : Manifest และไอคอนแอป -->
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ส่วนที่ 2 : ตั้งค่าพื้นฐาน */
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;width:100%}
+body{font-family:'Sarabun',sans-serif;color:#fff;background:linear-gradient(135deg,#881337 0%,#9f1239 50%,#be123c 100%);-webkit-tap-highlight-color:transparent}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+[hidden]{display:none!important}
+/* ส่วนที่ 3 : จัดวางหน้าแรก */
+.app{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px 20px;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.container{width:100%;max-width:400px;text-align:center}
+/* ส่วนที่ 4 : โลโก้และชื่อโรงเรียน */
+.header{margin-bottom:24px}
+.logo{width:96px;height:96px;object-fit:contain;border-radius:50%;background:#fff;padding:5px;box-shadow:0 8px 25px #0002;margin-bottom:12px}
+.school-name{font-size:26px;font-weight:700;margin:0 0 5px;line-height:1.5}
+.app-name{font-size:14px;font-weight:600;letter-spacing:1.5px;color:#fecdd3;margin:0}
+.version{display:inline-block;font-size:11px;background:#ffffff20;border:1px solid #ffffff30;border-radius:20px;padding:3px 12px;margin-top:8px}
+/* ส่วนที่ 5 : แสดงข้อมูลบุคลากร */
+.user-card{display:flex;align-items:center;gap:12px;background:#ffffff15;border:1px solid #ffffff30;border-radius:16px;padding:13px 15px;margin-bottom:16px;text-align:left}
+.user-icon{width:42px;height:42px;flex-shrink:0;background:#ffffff25;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.user-icon svg{width:23px;height:23px}
+.user-info{flex:1;min-width:0}
+.user-label{font-size:11px;color:#fecdd3;margin:0 0 3px}
+.user-name{font-size:16px;font-weight:700;margin:0;overflow-wrap:anywhere}
+.logout-btn{border:0;background:#ffffff20;color:#fff;border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+.logout-btn svg{width:17px;height:17px}
+/* ส่วนที่ 6 : ปุ่มเมนูหลัก */
+.menu{display:flex;flex-direction:column;gap:16px}
+.menu-card{display:flex;align-items:center;gap:16px;width:100%;min-height:108px;padding:20px;border-radius:18px;text-align:left;transition:transform .15s,box-shadow .15s;box-shadow:0 8px 24px #00000012;touch-action:manipulation}
+.menu-card:active{transform:scale(.97)}
+.menu-card:focus-visible{outline:3px solid #fda4af;outline-offset:4px}
+.attendance{background:#fff;color:#881337}
+.portal{background:#be123c;color:#fff;border:1px solid #fb7185}
+.menu-icon{width:42px;height:42px;flex-shrink:0}
+.attendance .menu-icon{color:#be123c}
+.menu-text{flex:1;min-width:0}
+.menu-title{font-size:20px;font-weight:700;line-height:1.5;margin:0}
+.menu-desc{font-size:13px;line-height:1.5;margin:4px 0 0}
+.attendance .menu-desc{color:#64748b}
+.portal .menu-desc{color:#fecdd3}
+.arrow{width:18px;height:18px;flex-shrink:0}
+.menu-card[aria-busy="true"]{opacity:.8;cursor:wait}
+.menu-card[aria-disabled="true"]{opacity:.65;cursor:not-allowed}
+/* ส่วนที่ 7 : สถานะระบบและข้อความด้านล่าง */
+.footer{margin-top:24px;color:#fecdd3;font-size:13px;line-height:1.8}
+.full-system{display:inline-block;text-decoration:underline;text-underline-offset:4px;color:#fff;margin-bottom:8px;padding:4px}
+.status{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#fff;color:#881337;text-align:center;font-size:14px;line-height:1.6;white-space:pre-line}
+.status.success{color:#166534}
+.status.error{color:#991b1b}
+.status.info{color:#1e40af}
+.developer{font-size:10px;color:#fecdd3;margin-top:14px}
+.test-label{font-size:11px;color:#fecdd3;margin-top:8px}
+/* ส่วนที่ 8 : รองรับหน้าจอขนาดเล็ก */
+@media(max-width:360px){
+.school-name{font-size:23px}
+.menu-card{padding:16px;gap:12px}
+.menu-title{font-size:18px}
+.menu-desc{font-size:12px}
+.menu-icon{width:36px;height:36px}
+}
+@media(max-height:600px){
+.logo{width:76px;height:76px}
+.header{margin-bottom:18px}
+.menu-card{min-height:90px}
+.footer{margin-top:18px}
+}
+</style>
+</head>
+<body>
+<!-- ส่วนที่ 9 : หน้าแรก PTS Smart School -->
+<main class="app">
+<div class="container">
+<header class="header">
+<img class="logo" src="https://img2.pic.in.th/---77d6d2d89c4e1695.png" alt="โลโก้โรงเรียนบ้านปงตา">
+<h1 class="school-name">โรงเรียนบ้านปงตา</h1>
+<p class="app-name">PTS SMART SCHOOL</p>
+<span class="version">VERSION 3.0</span>
+<p class="test-label">ระบบทดสอบ V.3</p>
+</header>
+<!-- ส่วนที่ 10 : ข้อมูลบุคลากรจาก SSO -->
+<div id="userCard" class="user-card" hidden>
+<div class="user-icon">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+<circle cx="12" cy="8" r="4"/>
+<path d="M4 21v-2a8 8 0 0 1 16 0v2"/>
+</svg>
+</div>
+<div class="user-info">
+<p class="user-label">ยินดีต้อนรับ</p>
+<p id="teacherName" class="user-name"></p>
+</div>
+<button id="logoutBtn" type="button" class="logout-btn" title="ออกจากระบบลงเวลา" aria-label="ออกจากระบบลงเวลา">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+<path d="M12 2v10"/>
+<path d="M6 5a9 9 0 1 0 12 0"/>
+</svg>
+</button>
+</div>
+<!-- ส่วนที่ 11 : เมนูหลัก -->
+<nav class="menu" aria-label="เมนูหลัก">
+<!-- เมนูลงเวลาปฏิบัติงาน -->
+<a id="attendanceBtn" class="menu-card attendance" href="./attendance/" aria-disabled="true">
+<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 12a10 10 0 0 1 18-6"/>
+<path d="M2 16h.01"/>
+<path d="M21.8 16c.2-2 .2-3 .2-4"/>
+<path d="M5 19.5C6 16 6 14 6 12a6 6 0 0 1 12 0c0 4-1 7-2 10"/>
+<path d="M9 22c1-3 1-7 1-10a2 2 0 0 1 4 0c0 2-.2 5-1 7"/>
+</svg>
+<div class="menu-text">
+<h2 class="menu-title">ลงเวลาปฏิบัติงาน</h2>
+<p id="attendanceDesc" class="menu-desc">ยืนยันตัวตนด้วย Biometric</p>
+</div>
+<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+<!-- เมนูเข้าสู่ PTS Portal -->
+<a class="menu-card portal" href="./portal/">
+<svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="3" y="3" width="7" height="7" rx="1"/>
+<rect x="14" y="3" width="7" height="7" rx="1"/>
+<rect x="3" y="14" width="7" height="7" rx="1"/>
+<rect x="14" y="14" width="7" height="7" rx="1"/>
+</svg>
+<div class="menu-text">
+<h2 class="menu-title">เข้าสู่ PTS Portal</h2>
+<p class="menu-desc">ระบบสารสนเทศบุคลากร</p>
+</div>
+<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 18 6-6-6-6"/>
+</svg>
+</a>
+</nav>
+<!-- ส่วนที่ 12 : สถานะและลิงก์ลงทะเบียน -->
+<div id="quickStatus" class="status" role="status" aria-live="polite" hidden></div>
+<footer class="footer">
+<a id="registerLink" class="full-system" href="./attendance/">ลงทะเบียน</a><br>
+เรียนดี ทักษะเด่น เน้นคุณธรรม
+<div class="developer">ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา</div>
+</footer>
+</div>
+</main>
+<!-- ส่วนที่ 13 : โหลดระบบ SSO ก่อน Biometric -->
+<script src="./sso.js?v=3.0.1"></script>
+<script src="./attendance/biometric.js?v=3.0.1"></script>
+<script>
+(function(){
+  'use strict';
+  /* ส่วนที่ 14 : ตัวแปรส่วนกลาง */
+  const btn=document.getElementById('attendanceBtn');
+  const desc=document.getElementById('attendanceDesc');
+  const status=document.getElementById('quickStatus');
+  const userCard=document.getElementById('userCard');
+  const teacherName=document.getElementById('teacherName');
+  const logoutBtn=document.getElementById('logoutBtn');
+  const registerLink=document.getElementById('registerLink');
+  let busy=false,ready=false;
+  const sso=window.PTSSSO;
+  const bio=window.PTSBiometric;
+  /* ส่วนที่ 15 : แสดงสถานะการทำงาน */
+  function show(message,type){
+    status.hidden=false;
+    status.className='status'+(type?' '+type:'');
+    status.textContent=message;
+  }
+  function hideStatus(){
+    status.hidden=true;
+    status.textContent='';
+  }
+  /* ส่วนที่ 16 : แสดงข้อมูลจาก Session */
+  function renderSession(session){
+    userCard.hidden=!session;
+    teacherName.textContent=session?session.teacherName:'';
+    btn.setAttribute('aria-disabled',session?'false':'true');
+    if(!session){
+      desc.textContent='กรุณาเข้าสู่ PTS Portal ก่อน';
+      return;
+    }
+    desc.textContent=bio&&bio.hasRegisteredDevice()
+      ?'ยืนยันตัวตนด้วย Biometric'
+      :'กรุณาลงทะเบียนอุปกรณ์ก่อน';
+  }
+  /* ส่วนที่ 17 : เริ่มต้นระบบ SSO */
+  async function initialize(){
+    if(!sso||!bio){
+      show('ไม่สามารถโหลดระบบ V.3 ได้','error');
+      return;
+    }
+    try{
+      const session=await sso.init();
+      renderSession(session);
+      ready=true;
+      if(!session){
+        show('กรุณาเข้าสู่ PTS Portal เพื่อยืนยันตัวตน','info');
+        return;
+      }
+      hideStatus();
+      if(bio.hasRegisteredDevice()){
+        bio.prime().catch(()=>{});
+      }
+    }catch(error){
+      ready=true;
+      renderSession(null);
+      show(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้','error');
+    }
+  }
+  /* ส่วนที่ 18 : ตรวจสอบสิทธิ์ก่อนเปิดหน้าลงทะเบียน */
+  registerLink.addEventListener('click',function(event){
+    if(!ready||!sso||!sso.getSession()){
+      event.preventDefault();
+      show('กรุณาเข้าสู่ PTS Portal ก่อนลงทะเบียน','info');
+    }
+  });
+  /* ส่วนที่ 19 : เตรียม Challenge เมื่อกลับเข้าสู่หน้าเว็บ */
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden&&ready&&sso&&bio){
+      const session=sso.getSession();
+      renderSession(session);
+      if(session&&!busy){
+        bio.prime().catch(()=>{});
+      }
+    }
+  });
+  /* ส่วนที่ 20 : ป้องกันการใช้ Session ที่หมดอายุ */
+  setInterval(function(){
+    if(document.hidden||!ready||!sso||!bio)return;
+    const session=sso.getSession();
+    if(!session){
+      renderSession(null);
+      bio.clearPrepared();
+      return;
+    }
+    if(!busy){
+      bio.prime().catch(()=>{});
+    }
+  },60000);
+  /* ส่วนที่ 21 : เมนูลงเวลาปฏิบัติงาน */
+  btn.addEventListener('click',function(event){
+    event.preventDefault();
+    if(!ready||busy)return;
+    if(!sso||!sso.getSession()){
+      show('กรุณาเข้าสู่ PTS Portal ก่อน','info');
+      return;
+    }
+    /* ระงับการบันทึกเวลาจริงระหว่างทดสอบ V.3 */
+    show(
+      'ระบบอยู่ระหว่างทดสอบ V.3 ยังไม่เปิดบันทึกเวลาปฏิบัติงานจริง',
+      'info'
+    );
+  });
+  /* ส่วนที่ 22 : ออกจากระบบลงเวลา */
+  logoutBtn.addEventListener('click',async function(){
+    if(busy||!sso)return;
+    busy=true;
+    logoutBtn.disabled=true;
+    try{
+      if(bio)bio.clearPrepared();
+      await sso.logout();
+      renderSession(null);
+      show('ออกจากระบบลงเวลาเรียบร้อย','success');
+    }catch(error){
+      renderSession(null);
+      show('ออกจากระบบบนอุปกรณ์แล้ว แต่ยังยืนยันการยกเลิก Session บนเซิร์ฟเวอร์ไม่ได้','error');
+    }finally{
+      busy=false;
+      logoutBtn.disabled=false;
+    }
+  });
+  /* ส่วนที่ 23 : เรียกใช้งานเมื่อเปิดหน้าเว็บ */
+  initialize();
+})();
+</script>
+</body>
+</html>
+
