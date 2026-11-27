@@ -40,11 +40,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .session-info strong{display:block;font-size:15px;overflow-wrap:anywhere}
 .session-info p{margin:2px 0 0;color:#64748b;font-size:12px}
 .session-verified{color:#16a34a}
-.auth-notice{padding:24px 10px;text-align:center}
-.auth-notice .material-icons-round{font-size:48px;color:#db2777}
-.auth-notice h2{font-size:19px;margin:10px 0 4px}
-.auth-notice p{font-size:13px;color:#64748b;line-height:1.7}
-.portal-link{display:block;background:#be185d;color:white;border-radius:13px;padding:12px;text-decoration:none;text-align:center;margin-top:18px}
 /* ส่วนที่ 4 : แท็บลงเวลาและรายงาน */
 .tabs{display:flex;gap:6px;background:white;border-radius:50px;margin:-22px 22px 22px;padding:5px;position:relative;box-shadow:0 5px 18px rgba(0,0,0,.12)}
 .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 8px;border:0;border-radius:40px;background:transparent;color:#64748b;font-size:14px}
@@ -160,10 +155,7 @@ body{padding:0;background:white}
 main{padding:0 16px 10px}
 .tabs{margin:-22px 16px 22px}
 }
-  /* ซ่อนหน้าระหว่างตรวจสอบ SSO */
-.app:has(#authNotice.hidden):has(#protectedContent.hidden){
-  visibility:hidden;
-}
+
 </style>
 </head>
 <body>
@@ -179,7 +171,7 @@ main{padding:0 16px 10px}
 </button>
 </div>
 <div class="brand-icon">
-<img id="schoolLogo" src="../../icon-192.png" alt="โลโก้โรงเรียน" style="width:100%;height:100%;object-fit:contain;border-radius:50%">
+<img id="schoolLogo" src="https://img2.pic.in.th/---77d6d2d89c4e1695.png" alt="โลโก้โรงเรียน" style="width:100%;height:100%;object-fit:contain;border-radius:50%">
 </div>
 <h1>โรงเรียนบ้านปงตา</h1>
 <p>ระบบลงเวลาปฏิบัติราชการดิจิทัล</p>
@@ -195,13 +187,6 @@ main{padding:0 16px 10px}
 </button>
 </nav>
 <main>
-<!-- ส่วนที่ 14 : ตรวจสอบสิทธิ์ก่อนเข้าระบบ -->
-<section id="authNotice" class="auth-notice hidden">
-<span class="material-icons-round">lock</span>
-<h2>PTS Smart School V.3</h2>
-<p id="authMessage">กำลังตรวจสอบสิทธิ์การเข้าสู่ระบบ...</p>
-<a href="../portal/" class="portal-link">เข้าสู่ PTS Portal</a>
-</section>
 <div id="protectedContent" class="hidden">
 <!-- ส่วนที่ 15 : แสดงชื่อบุคลากรจาก SSO -->
 <div class="session-card">
@@ -473,7 +458,7 @@ main{padding:0 16px 10px}
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- ส่วนที่ 29 : โหลด SSO ก่อน Biometric -->
 <script src="../sso.js?v=3.0.5"></script>
-<script src="./biometric.js?v=3.0.6"></script>
+<script src="./biometric.js?v=3.0.7"></script>
 <script>
 /* ส่วนที่ 30 : ตัวแปรส่วนกลาง */
 const sso=window.PTSSSO;
@@ -497,7 +482,9 @@ const LEAVE_LABELS={
 };
 /* ส่วนที่ 31 : ฟังก์ชันพื้นฐาน */
 function localDateString(){
-  return bio.localDateString();
+  if(bio&&typeof bio.localDateString==='function')return bio.localDateString();
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');
 }
 function count(value){
   const n=Number(value);
@@ -537,13 +524,11 @@ function requireSession(){
   }
   return session;
 }
-function showAuthNotice(message){
+function returnToRegistration(message){
   directRegistration=false;
   authenticated=false;
   reportRequest++;
   staff=[];
-  $('authNotice').classList.remove('hidden');
-  $('authMessage').textContent=message;
   $('protectedContent').classList.add('hidden');
   $('mainTabs').classList.add('hidden');
   $('enrollMenuBtn').classList.add('hidden');
@@ -564,10 +549,12 @@ function showAuthNotice(message){
   $('teacherPinInput').value='';
   closeEnrollModal();
   if(bio)bio.clearPrepared();
+  showDirectRegistration();
+  if(message)showToast(message,true);
 }
 function handleError(error){
   if(error.code==='SSO_REQUIRED'||!sso||!sso.getSession()){
-    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ Portal ใหม่');
+    returnToRegistration('Session หมดอายุ กรุณายืนยันตัวตนใหม่');
     return;
   }
   showToast(
@@ -591,7 +578,8 @@ async function callGas(params){
 /* ส่วนที่ 34 : เริ่มต้นระบบ */
 async function initialize(){
   if(!sso||!bio){
-    showAuthNotice('ไม่สามารถโหลดไฟล์ระบบ V.3 ได้');
+    showDirectRegistration();
+    showToast('ไม่สามารถโหลดไฟล์ระบบ V.3 ได้ กรุณาโหลดหน้าใหม่',true);
     return;
   }
   try{
@@ -601,20 +589,24 @@ async function initialize(){
       return;
     }
     authenticated=true;
+    directRegistration=false;
+    $('tab-report').disabled=false;
+    $('logoutAttendanceBtn').classList.remove('hidden');
+    $('sessionVerified').classList.remove('hidden');
+    $('sessionLabel').textContent='เข้าสู่ระบบผ่าน PTS Portal';
     const today=localDateString();
     $('customDate').value=today;
     $('customDate').max=today;
     $('reportDate').value=today;
     await loadInitialData();
     requireSession();
-    $('authNotice').classList.add('hidden');
     $('protectedContent').classList.remove('hidden');
     $('mainTabs').classList.remove('hidden');
     $('enrollMenuBtn').classList.remove('hidden');
     toggleFields();
     refreshDeviceUI();
   }catch(error){
-    showAuthNotice(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้');
+    returnToRegistration(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้');
   }
 }
 /* ส่วนที่ 34.1 : เปิดหน้าหลักสำหรับลงทะเบียนโดยตรง โดยไม่เปิดสิทธิ์ลงเวลาหรือรายงาน */
@@ -627,7 +619,6 @@ function showDirectRegistration(){
   $('customDate').value=today;
   $('customDate').max=today;
   $('reportDate').value=today;
-  $('authNotice').classList.add('hidden');
   $('protectedContent').classList.remove('hidden');
   $('mainTabs').classList.remove('hidden');
   $('enrollMenuBtn').classList.remove('hidden');
@@ -646,7 +637,7 @@ function showDirectRegistration(){
   $('deviceStatusBadge').classList.remove('ready');
   $('deviceStatusText').textContent='กรุณาลงทะเบียนอุปกรณ์';
   toggleFields();
-$('attendanceForm').inert=false;
+  $('attendanceForm').inert=false;
 }
 /* ส่วนที่ 35 : โหลดข้อมูลบุคลากรและโลโก้ */
 async function loadInitialData(){
@@ -770,7 +761,7 @@ async function registerDirectDevice(){
   let pin=$('teacherPinInput').value.trim();
   if(!name||name.length>150)return showToast('กรุณากรอกชื่อ-นามสกุล',true);
   if(!/^\d{4}$/.test(pin))return showToast('กรุณากรอก PIN 4 หลัก',true);
-  if(typeof bio.enrollDirect!=='function')return showToast('กรุณาอัปเดต biometric.js',true);
+  if(!bio||typeof bio.enrollDirect!=='function')return showToast('กรุณาอัปเดต biometric.js',true);
   if(!confirm('ยืนยันการลงทะเบียนหรือเปลี่ยนอุปกรณ์สำหรับบัญชีของคุณ?'))return;
   try{
     setLoading(true,'กำลังตรวจสอบ PIN...');
@@ -821,8 +812,9 @@ function toggleFields(){
 /* ส่วนที่ 40 : ตรวจสอบแบบฟอร์มและบันทึกผ่าน Biometric */
 async function handleWebAuthnAction(){
   if(busy)return;
-  // เปิดหน้าต่างลงทะเบียนกรณียังไม่มี Session
-  if(directRegistration){
+  // ลงทะเบียนโดยตรงก่อนใช้งาน ไม่ข้ามการตรวจสอบสิทธิ์
+  if(directRegistration||!authenticated||!sso?.getSession()){
+    if(!directRegistration)returnToRegistration();
     openEnrollModal();
     return;
   }
@@ -1081,9 +1073,9 @@ async function logoutAttendance(){
   setLoading(true,'กำลังออกจากระบบ...');
   try{
     await sso.logout();
-    showAuthNotice('ออกจากระบบแล้ว กรุณาเข้าสู่ Portal ใหม่');
+    returnToRegistration('ออกจากระบบแล้ว');
   }catch(error){
-    showAuthNotice('ออกจากระบบในอุปกรณ์แล้ว แต่ยังยืนยันการยกเลิก Session บนเซิร์ฟเวอร์ไม่ได้');
+    returnToRegistration('ออกจากระบบในอุปกรณ์แล้ว แต่ยังยืนยันการยกเลิก Session บนเซิร์ฟเวอร์ไม่ได้');
   }finally{
     setLoading(false);
   }
@@ -1091,12 +1083,12 @@ async function logoutAttendance(){
 /* ส่วนที่ 47 : ตรวจสอบ Session เมื่อกลับมาใช้งาน */
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&authenticated&&!sso.getSession()){
-    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+    returnToRegistration('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
   }
 });
 setInterval(()=>{
   if(authenticated&&!sso.getSession()){
-    showAuthNotice('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
+    returnToRegistration('Session หมดอายุ กรุณาเข้าสู่ระบบใหม่');
   }
 },15000);
 /* ส่วนที่ 48 : เริ่มต้นระบบ */
