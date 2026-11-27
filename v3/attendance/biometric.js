@@ -120,9 +120,14 @@
     }
     return result;
   }
-  /* ติดต่อ API สำหรับลงเวลาจากหน้าแรก */
+  /* ติดต่อ API สำหรับลงเวลาและลงทะเบียนโดยตรง */
   async function directPost(payload){
-    if(!['bioBegin','bioFinish'].includes(payload.action)){
+    if(![
+      'bioBegin',
+      'bioFinish',
+      'directEnrollBegin',
+      'directEnrollFinish'
+    ].includes(payload.action)){
       throw Error('ไม่อนุญาตให้ใช้คำสั่งนี้');
     }
     if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(GAS_API_URL)){
@@ -297,6 +302,106 @@
         throw Error('ข้อมูลทะเบียนอุปกรณ์ไม่ตรงกับคำขอ');
       }
       /* จัดเก็บทะเบียนอุปกรณ์เฉพาะ V.3 */
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({
+        name:saved.name,
+        credentialId:saved.credentialId,
+        version:3
+      }));
+      clearPrepared();
+      return saved;
+    }finally{
+      enrollBusy=false;
+    }
+  }
+  /* ========================================
+     ส่วนที่ 8.1 : ลงทะเบียนโดยตรงด้วย PIN
+     ไม่ต้องเข้าสู่หน้า Portal
+     ไม่สร้าง SSO Session
+  ======================================== */
+  async function enrollDirect(name,pin,onStatus){
+    if(enrollBusy||directBusy||quickBusy){
+      throw Error('กำลังดำเนินการ กรุณารอสักครู่');
+    }
+    name=String(name||'').trim();
+    if(!name){
+      throw Error('กรุณาระบุชื่อบุคลากร');
+    }
+    if(!isSupported()||
+       typeof navigator.credentials.create!=='function'){
+      throw Error('อุปกรณ์ไม่รองรับ WebAuthn');
+    }
+    if(!/^\d{4}$/.test(String(pin||''))){
+      throw Error('กรุณากรอก PIN 4 หลัก');
+    }
+    const notify=typeof onStatus==='function'?onStatus:()=>{};
+    enrollBusy=true;
+    try{
+      /* ตรวจสอบชื่อและ PIN จากเซิร์ฟเวอร์ */
+      notify('กำลังตรวจสอบ PIN...');
+      const result=await directPost({
+        action:'directEnrollBegin',
+        employeeName:name,
+        teacherPin:String(pin)
+      });
+      validateChallenge(result.challenge);
+      /* สร้างทะเบียนอุปกรณ์ใหม่ */
+      notify('ยืนยันตัวตนเพื่อลงทะเบียนอุปกรณ์...');
+      const credential=await navigator.credentials.create({
+        publicKey:{
+          challenge:fromB64(result.challenge),
+          rp:{
+            name:'โรงเรียนบ้านปงตา',
+            id:window.location.hostname
+          },
+          user:{
+            id:fromB64(result.userId),
+            name:name,
+            displayName:name
+          },
+          pubKeyCredParams:[
+            {type:'public-key',alg:-7}
+          ],
+          authenticatorSelection:{
+            authenticatorAttachment:'platform',
+            userVerification:'required',
+            residentKey:'preferred'
+          },
+          attestation:'none',
+          timeout:60000
+        }
+      });
+      if(!credential||
+         !credential.response||
+         typeof credential.response.getPublicKey!=='function'){
+        throw Error('เบราว์เซอร์ไม่รองรับการอ่านกุญแจสาธารณะ');
+      }
+      const publicKey=credential.response.getPublicKey();
+      if(!publicKey){
+        throw Error('ไม่ได้รับกุญแจสาธารณะจากอุปกรณ์');
+      }
+      const credentialId=toB64(credential.rawId);
+      /* ยืนยันการครอบครองกุญแจของอุปกรณ์ */
+      notify('กรุณายืนยันตัวตนอีกครั้ง...');
+      const assertion=await scanCredential(
+        result.challenge,
+        credentialId
+      );
+      /* ส่งหลักฐานให้เซิร์ฟเวอร์ตรวจสอบ */
+      notify('กำลังบันทึกทะเบียนอุปกรณ์...');
+      const saved=await directPost({
+        action:'directEnrollFinish',
+        employeeName:name,
+        challenge:result.challenge,
+        credentialId:credentialId,
+        publicKey:toB64(publicKey),
+        assertion:assertion
+      });
+      /* ตรวจสอบผลการลงทะเบียน */
+      if(saved.name!==name||
+         saved.credentialId!==credentialId){
+        throw Error('ข้อมูลทะเบียนอุปกรณ์ไม่ตรงกับคำขอ');
+      }
+      /* บันทึกทะเบียนอุปกรณ์ในโทรศัพท์ */
       localStorage.setItem(STORAGE_KEY,JSON.stringify({
         name:saved.name,
         credentialId:saved.credentialId,
@@ -561,6 +666,7 @@
     openAttendance,
     prime,
     enroll,
+    enrollDirect,
     submit,
     quickAttendance,
     directBiometricAttendance,
