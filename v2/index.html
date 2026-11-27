@@ -154,7 +154,8 @@ a{text-decoration:none;color:inherit}
     btn.setAttribute('aria-busy','true');
     try{
       const result=await bio.quickAttendance(msg=>show(msg,''));
-      show('✓ '+result.message+(result.recordedTime?'\nเวลา '+result.recordedTime+' น.':''),'success');
+      // แสดงข้อความบันทึกสำเร็จโดยไม่แสดงเวลา
+      show('✓ '+result.message,'success');
     }catch(err){
       if(err.code==='REENROLL'){
         show('กรุณาเปิดระบบเดิมจากลิงก์ด้านล่างเพื่อลงทะเบียนอุปกรณ์ใหม่หนึ่งครั้ง','error');
