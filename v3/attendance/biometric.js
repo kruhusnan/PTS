@@ -1,34 +1,61 @@
 
 /* ========================================
-   PTS SMART SCHOOL : QUICK ATTENDANCE
-   ระบบลงเวลาด่วนด้วย Biometric
+   PTS SMART SCHOOL V.3 : QUICK ATTENDANCE
+   ระบบยืนยันตัวตน Biometric ผ่าน SSO
    โรงเรียนบ้านปงตา
 ======================================== */
 (function(){
   'use strict';
-  // ส่วนที่ 1 : การตั้งค่าและ URL ของระบบลงเวลา
-  const GAS_API_URL='https://script.google.com/macros/s/AKfycbzn2-JdsHmL6hcKnZ2C5DUNxTl-2EqJ4HIV6O9zudE8_ygtX6_bwvu8I-XFRJ4-I74k/exec';
-  const STORAGE_KEY='PTS_WEBAUTHN_DEVICE_V1';
-  const ATTENDANCE_URL='/PTS/v2/attendance/';
+  /* ส่วนที่ 1 : ตั้งค่าระบบ V.3 */
+  const STORAGE_KEY='PTS_V3_WEBAUTHN_DEVICE';
+  const ATTENDANCE_URL='/PTS/v3/attendance/';
   let quickBusy=false,prepared=null,pending=null;
-  // ส่วนที่ 2 : อ่านข้อมูลอุปกรณ์ที่ลงทะเบียนไว้
+  /* ส่วนที่ 2 : อ่าน SSO Session ปัจจุบัน */
+  function getSession(){
+    return window.PTSSSO?.getSession()||null;
+  }
+  /* ตรวจสอบสิทธิ์และชื่อบุคลากร */
+  function requireSession(name){
+    const session=getSession();
+    if(!session){
+      const error=Error('กรุณาเข้าสู่ระบบผ่าน PTS Portal V.3');
+      error.code='SSO_REQUIRED';
+      throw error;
+    }
+    if(name&&name!==session.teacherName){
+      throw Error('ไม่อนุญาตให้ใช้สิทธิ์ของบุคลากรคนอื่น');
+    }
+    return session;
+  }
+  /* อ่านข้อมูลอุปกรณ์ที่ลงทะเบียนไว้ */
   function getSavedCredential(){
     try{
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+      const session=getSession();
+      if(!session)return null;
+      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+      if(!saved||saved.version!==3||saved.name!==session.teacherName||!saved.credentialId){
+        return null;
+      }
+      return saved;
     }catch(e){
       return null;
     }
   }
-  // ตรวจสอบการลงทะเบียนอุปกรณ์
+  /* ตรวจสอบการลงทะเบียนอุปกรณ์ */
   function hasRegisteredDevice(){
-    const s=getSavedCredential();
-    return Boolean(s&&s.name&&s.credentialId);
+    const saved=getSavedCredential();
+    return Boolean(saved&&saved.name&&saved.credentialId);
   }
-  // ตรวจสอบการรองรับ WebAuthn
+  /* ตรวจสอบการรองรับ WebAuthn */
   function isSupported(){
-    return Boolean(window.isSecureContext&&window.PublicKeyCredential&&navigator.credentials&&typeof navigator.credentials.get==='function');
+    return Boolean(
+      window.isSecureContext&&
+      window.PublicKeyCredential&&
+      navigator.credentials&&
+      typeof navigator.credentials.get==='function'
+    );
   }
-  // จัดรูปแบบวันที่ตามเวลาประเทศไทย
+  /* จัดรูปแบบวันที่ตามเวลาประเทศไทย */
   function localDateString(){
     const parts=new Intl.DateTimeFormat('en-CA',{
       timeZone:'Asia/Bangkok',
@@ -36,59 +63,51 @@
       month:'2-digit',
       day:'2-digit'
     }).formatToParts(new Date());
-    return ['year','month','day'].map(k=>parts.find(p=>p.type===k).value).join('-');
+    return ['year','month','day']
+      .map(k=>parts.find(p=>p.type===k).value)
+      .join('-');
   }
-  // ตรวจสอบความพร้อมของระบบ
+  /* ตรวจสอบความพร้อมของระบบ */
   function checkReadiness(){
+    const session=getSession();
     return {
+      authenticated:Boolean(session),
+      teacherName:session?session.teacherName:'',
       supported:isSupported(),
       registered:hasRegisteredDevice(),
       gpsSupported:Boolean(navigator.geolocation)
     };
   }
-  // เปิดหน้าระบบลงเวลาเดิม
+  /* เปิดหน้าระบบลงเวลา V.3 */
   function openAttendance(){
     window.location.href=ATTENDANCE_URL;
   }
-  // ส่วนที่ 3 : ติดต่อ Google Apps Script
+  /* ส่วนที่ 3 : ติดต่อ Google Apps Script ผ่าน SSO */
   async function post(payload){
-    const res=await fetch(GAS_API_URL,{
-      method:'POST',
-      redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(payload)
-    });
-    if(!res.ok){
-      throw Error('เซิร์ฟเวอร์ไม่ตอบสนอง (HTTP '+res.status+')');
+    if(!window.PTSSSO){
+      throw Error('ไม่พบระบบ SSO V.3');
     }
-    let data;
-    try{
-      data=await res.json();
-    }catch(e){
-      throw Error('ไม่สามารถอ่านผลจากเซิร์ฟเวอร์ กรุณาตรวจสอบการเผยแพร่ Web App');
-    }
-    if(!data.success){
-      const e=Error(data.message||'เซิร์ฟเวอร์ปฏิเสธคำขอ');
-      e.code=data.code||'';
-      throw e;
-    }
-    return data;
+    requireSession();
+    return window.PTSSSO.post(payload);
   }
-  // แปลง Base64URL เป็นข้อมูลสำหรับ WebAuthn
+  /* แปลง Base64URL เป็นข้อมูลสำหรับ WebAuthn */
   function fromB64(s){
     let b=s.replace(/-/g,'+').replace(/_/g,'/');
     b+='='.repeat((4-b.length%4)%4);
     return Uint8Array.from(atob(b),x=>x.charCodeAt(0));
   }
-  // แปลงข้อมูล WebAuthn เป็น Base64URL
+  /* แปลงข้อมูล WebAuthn เป็น Base64URL */
   function toB64(b){
     let s='';
     for(const x of new Uint8Array(b)){
       s+=String.fromCharCode(x);
     }
-    return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    return btoa(s)
+      .replace(/\+/g,'-')
+      .replace(/\//g,'_')
+      .replace(/=+$/,'');
   }
-  // จัดเตรียมหลักฐานยืนยันตัวตน
+  /* จัดเตรียมหลักฐานยืนยันตัวตน */
   function encodeAssertion(a){
     if(!a||!a.response){
       throw Error('ไม่ได้รับผลยืนยันตัวตน');
@@ -100,12 +119,13 @@
       signature:toB64(a.response.signature)
     };
   }
-  // เรียกหน้าต่างสแกนลายนิ้วมือหรือ Face ID
+  /* เรียกหน้าต่างยืนยันตัวตนจากอุปกรณ์ */
   async function scan(challenge,credentialId){
+    requireSession();
     if(!isSupported()){
       throw Error('กรุณาเปิดผ่าน Chrome หรือ Safari ที่รองรับ WebAuthn');
     }
-    const a=await navigator.credentials.get({
+    const assertion=await navigator.credentials.get({
       publicKey:{
         challenge:fromB64(challenge),
         rpId:window.location.hostname,
@@ -118,30 +138,35 @@
         timeout:60000
       }
     });
-    return encodeAssertion(a);
+    return encodeAssertion(assertion);
   }
-  // ส่วนที่ 4 : ลงทะเบียนอุปกรณ์ด้วย PIN เดิม
+  /* ส่วนที่ 4 : ลงทะเบียนอุปกรณ์ด้วย PIN และ SSO */
   async function enroll(name,pin,onStatus){
+    const session=requireSession(name);
+    name=session.teacherName;
     if(!isSupported()){
       throw Error('อุปกรณ์ไม่รองรับ WebAuthn');
     }
+    if(!/^\d{4}$/.test(String(pin||''))){
+      throw Error('กรุณากรอก PIN 4 หลัก');
+    }
     const notify=typeof onStatus==='function'?onStatus:()=>{};
     notify('กำลังตรวจสอบ PIN...');
-    const r=await post({
+    const result=await post({
       action:'qaEnrollBegin',
       employeeName:name,
-      teacherPin:pin
+      teacherPin:String(pin)
     });
     notify('ยืนยันตัวตนเพื่อลงทะเบียนอุปกรณ์...');
-    const cred=await navigator.credentials.create({
+    const credential=await navigator.credentials.create({
       publicKey:{
-        challenge:fromB64(r.challenge),
+        challenge:fromB64(result.challenge),
         rp:{
           name:'โรงเรียนบ้านปงตา',
           id:window.location.hostname
         },
         user:{
-          id:fromB64(r.userId),
+          id:fromB64(result.userId),
           name:name,
           displayName:name
         },
@@ -157,48 +182,56 @@
         timeout:60000
       }
     });
-    if(!cred||!cred.response||typeof cred.response.getPublicKey!=='function'){
-      throw Error('เบราว์เซอร์ไม่รองรับการอ่านกุญแจสาธารณะ กรุณาอัปเดตเบราว์เซอร์');
+    if(!credential||
+       !credential.response||
+       typeof credential.response.getPublicKey!=='function'){
+      throw Error('เบราว์เซอร์ไม่รองรับการอ่านกุญแจสาธารณะ');
     }
-    const key=cred.response.getPublicKey();
-    if(!key){
+    const publicKey=credential.response.getPublicKey();
+    if(!publicKey){
       throw Error('ไม่ได้รับกุญแจสาธารณะจากอุปกรณ์');
     }
-    const id=toB64(cred.rawId);
+    const credentialId=toB64(credential.rawId);
     notify('กรุณายืนยันตัวตนอีกครั้งเพื่อรับรองกุญแจใหม่...');
-    const assertion=await scan(r.challenge,id);
+    const assertion=await scan(result.challenge,credentialId);
+    requireSession(name);
     notify('กำลังบันทึกทะเบียนอุปกรณ์...');
-    const result=await post({
+    const saved=await post({
       action:'qaEnrollFinish',
-      challenge:r.challenge,
-      credentialId:id,
-      publicKey:toB64(key),
+      employeeName:name,
+      challenge:result.challenge,
+      credentialId:credentialId,
+      publicKey:toB64(publicKey),
       assertion:assertion
     });
+    if(saved.name!==name||saved.credentialId!==credentialId){
+      throw Error('ข้อมูลทะเบียนอุปกรณ์ไม่ตรงกับคำขอ');
+    }
+    /* จัดเก็บทะเบียนอุปกรณ์เฉพาะ V.3 */
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
-      name:result.name,
-      credentialId:result.credentialId,
-      version:2
+      name:saved.name,
+      credentialId:saved.credentialId,
+      version:3
     }));
     prepared=null;
-    return result;
+    return saved;
   }
-  // ส่วนที่ 5 : ตรวจสอบตำแหน่ง GPS
+  /* ส่วนที่ 5 : ตรวจสอบตำแหน่ง GPS จริงจากอุปกรณ์ */
   function getLocation(){
     return new Promise((resolve,reject)=>{
       if(!navigator.geolocation){
         return reject(Error('อุปกรณ์ไม่รองรับ GPS'));
       }
       navigator.geolocation.getCurrentPosition(
-        p=>resolve({
-          latitude:p.coords.latitude,
-          longitude:p.coords.longitude
+        position=>resolve({
+          latitude:position.coords.latitude,
+          longitude:position.coords.longitude
         }),
-        e=>reject(Error(({
+        error=>reject(Error(({
           1:'กรุณาอนุญาตให้เว็บไซต์ใช้ GPS',
           2:'ไม่สามารถระบุตำแหน่งได้ กรุณาเปิด GPS',
           3:'ค้นหาตำแหน่งนานเกินไป'
-        })[e.code]||'ไม่สามารถอ่าน GPS ได้')),
+        })[error.code]||'ไม่สามารถอ่าน GPS ได้')),
         {
           enableHighAccuracy:true,
           timeout:15000,
@@ -207,45 +240,58 @@
       );
     });
   }
-  // ส่วนที่ 6 : เตรียมข้อมูลลงเวลาด่วน
+  /* ส่วนที่ 6 : เตรียมข้อมูลลงเวลาด่วน */
   function quickData(){
-    const s=getSavedCredential();
-    if(!s||!s.name||!s.credentialId){
-      const e=Error('กรุณาลงทะเบียนอุปกรณ์ก่อน');
-      e.code='REENROLL';
-      throw e;
+    const session=requireSession();
+    const saved=getSavedCredential();
+    if(!saved||!saved.credentialId){
+      const error=Error('กรุณาลงทะเบียนอุปกรณ์ก่อน');
+      error.code='REENROLL';
+      throw error;
     }
     return {
-      employeeName:s.name,
-      credentialId:s.credentialId,
+      employeeName:session.teacherName,
+      credentialId:saved.credentialId,
       entryType:'มาปฏิบัติงาน',
       customDate:localDateString()
     };
   }
-  // สร้างกุญแจสำหรับตรวจสอบคำขอลงเวลา
-  function quickKey(d){
+  /* สร้างกุญแจตรวจสอบคำขอลงเวลา */
+  function quickKey(data){
+    const session=requireSession(data.employeeName);
     return JSON.stringify([
-      d.employeeName,
-      d.credentialId,
-      d.entryType,
-      d.customDate
+      session.teacherName,
+      session.expiresAt,
+      data.credentialId,
+      data.entryType,
+      data.customDate
     ]);
   }
-  // เตรียม Challenge ล่วงหน้าเพื่อลดเวลารอ
+  /* เตรียม Challenge ล่วงหน้าเพื่อลดเวลารอ */
   async function prime(){
-    if(!isSupported()||!hasRegisteredDevice()||quickBusy)return;
+    if(!getSession()||
+       !isSupported()||
+       !hasRegisteredDevice()||
+       quickBusy)return;
     const data=quickData();
     const key=quickKey(data);
-    if(prepared&&prepared.key===key&&Date.now()-prepared.at<90000)return;
+    if(prepared&&
+       prepared.key===key&&
+       Date.now()-prepared.at<90000)return;
     if(pending)return pending;
     pending=post({
       action:'qaBegin',
       data:data
-    }).then(r=>{
+    }).then(result=>{
+      const session=getSession();
+      if(!session||session.teacherName!==data.employeeName){
+        prepared=null;
+        return;
+      }
       prepared={
         key:key,
         at:Date.now(),
-        challenge:r.challenge
+        challenge:result.challenge
       };
     }).catch(()=>{
       prepared=null;
@@ -254,33 +300,51 @@
     });
     return pending;
   }
-  // ส่วนที่ 7 : สแกน ตรวจสอบ GPS และส่งข้อมูลบันทึก
+  /* ส่วนที่ 7 : ยืนยันตัวตนและตรวจสอบ GPS */
   async function submit(data,onStatus,challenge){
+    const session=requireSession(data.employeeName);
+    const saved=getSavedCredential();
+    if(!saved||saved.credentialId!==data.credentialId){
+      const error=Error('กรุณาลงทะเบียนอุปกรณ์ก่อน');
+      error.code='REENROLL';
+      throw error;
+    }
+    data={
+      ...data,
+      employeeName:session.teacherName
+    };
     const notify=typeof onStatus==='function'?onStatus:()=>{};
     if(!challenge){
       notify('กำลังเตรียมการยืนยันตัวตน...');
-      challenge=(await post({
+      const result=await post({
         action:'qaBegin',
         data:data
-      })).challenge;
+      });
+      challenge=result.challenge;
     }
     notify('กรุณายืนยันตัวตนบนโทรศัพท์...');
     const assertion=await scan(challenge,data.credentialId);
-    let loc={latitude:null,longitude:null};
+    let location={
+      latitude:null,
+      longitude:null
+    };
     if(data.entryType==='มาปฏิบัติงาน'){
       notify('กำลังตรวจสอบ GPS...');
-      loc=await getLocation();
+      location=await getLocation();
     }
+    requireSession(data.employeeName);
+    /* ส่งหลักฐานยืนยันตัวตนให้เซิร์ฟเวอร์ตรวจสอบ */
     notify('กำลังบันทึกข้อมูล...');
     return post({
       action:'qaFinish',
+      employeeName:data.employeeName,
       challenge:challenge,
       assertion:assertion,
-      latitude:loc.latitude,
-      longitude:loc.longitude
+      latitude:location.latitude,
+      longitude:location.longitude
     });
   }
-  // ส่วนที่ 8 : ฟังก์ชันลงเวลาด่วนจากหน้าแรก
+  /* ส่วนที่ 8 : ฟังก์ชันลงเวลาด่วนจากหน้าแรก */
   async function quickAttendance(onStatus){
     if(quickBusy){
       throw Error('กำลังดำเนินการ');
@@ -290,7 +354,9 @@
     quickBusy=true;
     try{
       let challenge=null;
-      if(prepared&&prepared.key===key&&Date.now()-prepared.at<90000){
+      if(prepared&&
+         prepared.key===key&&
+         Date.now()-prepared.at<90000){
         challenge=prepared.challenge;
         prepared=null;
       }
@@ -298,12 +364,17 @@
     }finally{
       quickBusy=false;
       prepared=null;
-      prime();
+      if(getSession()){
+        prime().catch(()=>{});
+      }
     }
   }
-  // ส่วนที่ 9 : เปิดฟังก์ชันให้หน้าแรกและระบบเดิมเรียกใช้งาน
+  /* ส่วนที่ 9 : ล้าง Challenge ที่เตรียมไว้ */
+  function clearPrepared(){
+    prepared=null;
+  }
+  /* ส่วนที่ 10 : เปิดฟังก์ชันให้หน้าเว็บ V.3 เรียกใช้งาน */
   window.PTSBiometric=Object.freeze({
-    GAS_API_URL,
     getSavedCredential,
     hasRegisteredDevice,
     isSupported,
@@ -313,7 +384,8 @@
     prime,
     enroll,
     submit,
-    quickAttendance
+    quickAttendance,
+    clearPrepared
   });
 })();
 /* ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา */
