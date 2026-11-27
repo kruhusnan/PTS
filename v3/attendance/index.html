@@ -821,6 +821,11 @@ function toggleFields(){
 /* ส่วนที่ 40 : ตรวจสอบแบบฟอร์มและบันทึกผ่าน Biometric */
 async function handleWebAuthnAction(){
   if(busy)return;
+  // เปิดหน้าต่างลงทะเบียนกรณียังไม่มี Session
+  if(directRegistration){
+    openEnrollModal();
+    return;
+  }
   try{
     requireSession();
     const saved=getSavedCredential();
