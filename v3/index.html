@@ -158,9 +158,9 @@ button{font-family:inherit;cursor:pointer}
 </footer>
 </div>
 </main>
-<!-- ส่วนที่ 13 : โหลดระบบ SSO ก่อน Biometric -->
-<script src="./sso.js?v=3.0.1"></script>
-<script src="./attendance/biometric.js?v=3.0.1"></script>
+<!-- ส่วนที่ 13 : โหลด SSO และ Biometric เวอร์ชันล่าสุด -->
+<script src="./sso.js?v=3.0.3"></script>
+<script src="./attendance/biometric.js?v=3.0.3"></script>
 <script>
 (function(){
   'use strict';
@@ -198,10 +198,16 @@ button{font-family:inherit;cursor:pointer}
       ?'ยืนยันตัวตนด้วย Biometric'
       :'กรุณาลงทะเบียนอุปกรณ์ก่อน';
   }
-  /* ส่วนที่ 17 : เริ่มต้นระบบ SSO */
+  /* ส่วนที่ 17 : เริ่มต้นระบบ SSO และตรวจสอบ JavaScript */
   async function initialize(){
-    if(!sso||!bio){
-      show('ไม่สามารถโหลดระบบ V.3 ได้','error');
+    if(!sso){
+      console.error('PTS V.3: ไม่พบ window.PTSSSO');
+      show('ไม่สามารถโหลด sso.js ได้','error');
+      return;
+    }
+    if(!bio){
+      console.error('PTS V.3: ไม่พบ window.PTSBiometric');
+      show('ไม่สามารถโหลด biometric.js ได้','error');
       return;
     }
     try{
@@ -219,6 +225,7 @@ button{font-family:inherit;cursor:pointer}
     }catch(error){
       ready=true;
       renderSession(null);
+      console.error('PTS V.3 SSO:',error);
       show(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้','error');
     }
   }
@@ -290,4 +297,3 @@ button{font-family:inherit;cursor:pointer}
 </script>
 </body>
 </html>
-
