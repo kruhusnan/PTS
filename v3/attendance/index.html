@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -180,7 +179,7 @@ main{padding:0 16px 10px}
 </div>
 <h1>โรงเรียนบ้านปงตา</h1>
 <p>ระบบลงเวลาปฏิบัติราชการดิจิทัล</p>
-<span class="version-label">VERSION 3.0 | ระบบทดสอบ</span>
+<span class="version-label">VERSION 3.0</span>
 </header>
 <!-- ส่วนที่ 13 : เมนูลงเวลาและรายงาน -->
 <nav id="mainTabs" class="tabs hidden">
@@ -217,9 +216,6 @@ main{padding:0 16px 10px}
 <div class="section-head">
 <h2>บันทึกการปฏิบัติราชการ</h2>
 <p>ยืนยันตัวตนด้วย Biometric ผ่าน SSO</p>
-</div>
-<div class="notice">
-ระบบทดสอบ V.3 — ยังไม่เปิดบันทึกเวลาปฏิบัติราชการจริง
 </div>
 <form id="attendanceForm" onsubmit="event.preventDefault()">
 <label for="customDate">วันที่ปฏิบัติราชการ</label>
@@ -447,7 +443,6 @@ main{padding:0 16px 10px}
 <p style="font-size:12px;color:#64748b;margin:0 0 14px">
 ชื่อบุคลากรจะถูกกำหนดจาก PTS Portal โดยอัตโนมัติ กรุณากรอก PIN ส่วนตัวเพื่อยืนยันการลงทะเบียน
 </p>
-<div class="notice">ใช้สำหรับอุปกรณ์และบัญชีที่กำหนดไว้ทดสอบ V.3 เท่านั้น</div>
 <label for="enrollEmployee">ชื่อบุคลากร</label>
 <div class="input-box">
 <span class="material-icons-round">person</span>
@@ -473,8 +468,8 @@ main{padding:0 16px 10px}
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- ส่วนที่ 29 : โหลด SSO ก่อน Biometric -->
-<script src="../sso.js?v=3.0.1"></script>
-<script src="./biometric.js?v=3.0.1"></script>
+<script src="../sso.js?v=3.0.5"></script>
+<script src="./biometric.js?v=3.0.5"></script>
 <script>
 /* ส่วนที่ 30 : ตัวแปรส่วนกลาง */
 const sso=window.PTSSSO;
@@ -579,7 +574,13 @@ function handleError(error){
 /* ส่วนที่ 33 : ติดต่อ API ผ่าน SSO */
 async function callGas(params){
   requireSession();
-  return sso.post(params);
+  const result=await sso.post(params);
+  if(!result||result.success!==true){
+    const error=Error(result?.message||'ไม่สามารถดำเนินการได้');
+    error.code=result?.code||'';
+    throw error;
+  }
+  return result;
 }
 /* ส่วนที่ 34 : เริ่มต้นระบบ */
 async function initialize(){
@@ -615,7 +616,7 @@ async function loadInitialData(){
   const session=requireSession();
   const data=await callGas({action:'init'});
   if(data.version!=='V.3'||
-     data.testMode!==true||
+     data.testMode!==false||
      data.teacherName!==session.teacherName){
     throw Error('ข้อมูลระบบหรือ Session ไม่ตรงกับ V.3');
   }
@@ -691,7 +692,7 @@ async function registerWebAuthnBiometric(){
   }
   try{
     const session=requireSession();
-    if(!confirm('ยืนยันการลงทะเบียนอุปกรณ์สำหรับบัญชีทดสอบ V.3 เท่านั้น?')){
+    if(!confirm('ยืนยันการลงทะเบียนหรือเปลี่ยนอุปกรณ์สำหรับบัญชีของคุณ?')){
       return;
     }
     setLoading(true,'กำลังตรวจสอบ PIN...');
@@ -742,8 +743,8 @@ function toggleFields(){
     $('gpsInfoText').textContent='การแจ้งไปราชการต้องเป็นไปตามข้อมูลการปฏิบัติราชการจริง';
   }
 }
-/* ส่วนที่ 40 : ตรวจสอบแบบฟอร์มในโหมดทดสอบ */
-function handleWebAuthnAction(){
+/* ส่วนที่ 40 : ตรวจสอบแบบฟอร์มและบันทึกผ่าน Biometric */
+async function handleWebAuthnAction(){
   if(busy)return;
   try{
     requireSession();
@@ -774,10 +775,28 @@ function handleWebAuthnAction(){
     )){
       throw Error('กรุณาระบุเรื่องและสถานที่ไปราชการ');
     }
-    // ระงับการส่งคำขอบันทึกจริงระหว่างพัฒนา V.3
-    showToast('ตรวจสอบแบบฟอร์มผ่าน — ยังไม่ได้บันทึกข้อมูล');
+    // ส่งข้อมูลผ่าน Biometric และ SSO โดยใช้วันที่และเวลาจริง
+    const session=requireSession();
+    setLoading(true,'กำลังเตรียมการยืนยันตัวตน...');
+    const result=await bio.submit({
+      employeeName:session.teacherName,
+      entryType:type,
+      customDate:date,
+      leaveType:$('leaveType').value,
+      tripSubject:$('tripSubject').value.trim(),
+      tripLocation:$('tripLocation').value.trim()
+    },message=>$('loadingText').textContent=message);
+    if(result.success!==true||result.recorded!==true){
+      throw Error('ยังไม่ได้รับการยืนยันการบันทึก');
+    }
+    showToast(result.message||'บันทึกข้อมูลสำเร็จ');
+    $('leaveType').value='';
+    $('tripSubject').value='';
+    $('tripLocation').value='';
   }catch(error){
     handleError(error);
+  }finally{
+    setLoading(false);
   }
 }
 /* ส่วนที่ 41 : สลับแท็บ */
@@ -833,8 +852,8 @@ async function loadDashboard(){
     });
     if(request!==reportRequest)return;
     requireSession();
-    if(data.version!=='V.3'||data.testMode!==true){
-      throw Error('รายงานไม่ใช่ข้อมูลทดสอบ V.3');
+    if(data.version!=='V.3'||data.testMode!==false){
+      throw Error('รายงานไม่ตรงกับระบบ V.3');
     }
     if(!data.overview||!data.details){
       throw Error('ข้อมูลรายงานไม่สมบูรณ์');
@@ -944,7 +963,7 @@ async function printFromWeb(){
   if(pdfWindow){
     try{pdfWindow.opener=null}catch(e){}
   }
-  setLoading(true,'กำลังจัดทำรายงาน PDF ทดสอบ...');
+  setLoading(true,'กำลังจัดทำรายงาน PDF...');
   try{
     const result=await callGas({
       action:'print',
@@ -1005,4 +1024,3 @@ window.addEventListener('load',initialize);
 </script>
 </body>
 </html>
-
