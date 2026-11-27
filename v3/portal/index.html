@@ -3,87 +3,13 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#BE123C">
-<meta name="referrer" content="no-referrer">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="PTS Portal V.3">
-<title>PTS Portal V.3 | โรงเรียนบ้านปงตา</title>
-<!-- ส่วนที่ 1 : Manifest และไอคอน -->
-<link rel="manifest" href="../manifest.json">
-<link rel="icon" href="../../icon-192.png">
-<link rel="apple-touch-icon" href="../../icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-/* ส่วนที่ 2 : ตั้งค่าพื้นฐาน */
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;min-height:100%}
-body{font-family:'Sarabun',sans-serif;background:linear-gradient(135deg,#881337 0%,#be123c 50%,#fb7185 100%);color:white;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{width:100%;max-width:350px;text-align:center}
-/* ส่วนที่ 3 : โลโก้และชื่อระบบ */
-.logo{width:90px;height:90px;object-fit:contain;background:white;padding:6px;border-radius:50%;box-shadow:0 8px 25px #0002;margin-bottom:12px}
-h1{font-size:24px;margin:0 0 6px}
-.subtitle{font-size:14px;color:#fecdd3;margin:0 0 20px}
-.version{display:inline-block;font-size:11px;border:1px solid #ffffff50;border-radius:20px;background:#ffffff20;padding:4px 12px;margin-bottom:20px}
-/* ส่วนที่ 4 : สถานะการเชื่อมต่อ */
-.status{font-size:14px;line-height:1.8;margin:15px 0}
-.status.error{background:white;color:#be123c;border-radius:14px;padding:14px}
-.spinner{width:32px;height:32px;border:3px solid #ffffff40;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;margin:12px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-[hidden]{display:none!important}
-/* ส่วนที่ 5 : ปุ่มเปิดระบบ */
-.btn{display:block;width:100%;padding:13px;border-radius:13px;background:white;color:#881337;font-size:15px;font-weight:600;text-decoration:none;margin-top:15px}
-.back{display:inline-block;color:#fecdd3;font-size:13px;text-decoration:none;margin-top:18px}
-.footer{font-size:10px;color:#fecdd3;margin-top:28px;line-height:1.8}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PTS Portal V.3</title>
+<script>
+/* เปิดระบบ PTS Portal V.3 */
+window.location.replace('https://script.google.com/macros/s/AKfycbylXL_fqFSYX8FY_BYz4wuSz7DQ29w7llt7NzXoLDwWssHa0e7oo12uRJGJfrwB5V7g/exec');
+</script>
 </head>
 <body>
-<!-- ส่วนที่ 6 : หน้าเชื่อมต่อ Portal -->
-<main class="container">
-<img class="logo" src="https://img2.pic.in.th/---77d6d2d89c4e1695.png" alt="โลโก้โรงเรียนบ้านปงตา">
-<h1>โรงเรียนบ้านปงตา</h1>
-<p class="subtitle">PTS PORTAL</p>
-<span class="version">VERSION 3.0</span>
-<div id="spinner" class="spinner"></div>
-<div id="status" class="status" role="status" aria-live="polite">กำลังเชื่อมต่อ PTS Portal...</div>
-<a id="portalBtn" class="btn" hidden>เข้าสู่ PTS Portal</a>
-<a href="../" class="back">← กลับหน้าหลัก</a>
-<div class="footer">ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา</div>
-</main>
-<script>
-/* ส่วนที่ 7 : ตั้งค่า URL ของ Portal V.3 */
-const PORTAL_WEB_APP_URL='https://script.google.com/macros/s/AKfycbylXL_fqFSYX8FY_BYz4wuSz7DQ29w7llt7NzXoLDwWssHa0e7oo12uRJGJfrwB5V7g/exec';
-/* ส่วนที่ 8 : ตรวจสอบ URL ก่อนเชื่อมต่อ */
-function validatePortalURL(){
-  try{
-    const url=new URL(PORTAL_WEB_APP_URL);
-    return url.origin==='https://script.google.com'&&
-      /^\/(?:a\/macros\/banpongta\.ac\.th|macros)\/s\/[A-Za-z0-9_-]+\/exec$/.test(url.pathname)&&
-      !url.search&&!url.hash;
-  }catch(error){
-    return false;
-  }
-}
-/* ส่วนที่ 9 : เปิดระบบ PTS Portal V.3 */
-function openPortal(){
-  const status=document.getElementById('status');
-  const spinner=document.getElementById('spinner');
-  const button=document.getElementById('portalBtn');
-  if(!validatePortalURL()){
-    spinner.hidden=true;
-    status.classList.add('error');
-    status.textContent='ยังไม่ได้ตั้งค่า URL ของ PTS Portal V.3';
-    return;
-  }
-  // เตรียมลิงก์สำรองหากเบราว์เซอร์ไม่เปลี่ยนหน้า
-  button.href=PORTAL_WEB_APP_URL;
-  button.hidden=false;
-  // เปิด Web App โดยตรง ไม่ใช้ iframe
-  window.location.replace(PORTAL_WEB_APP_URL);
-}
-/* ส่วนที่ 10 : เริ่มต้นระบบ */
-window.addEventListener('DOMContentLoaded',openPortal);
-</script>
 </body>
 </html>
-
