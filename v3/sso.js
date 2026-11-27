@@ -6,6 +6,7 @@
 (function(){
   'use strict';
   /* ส่วนที่ 1 : ตั้งค่าระบบ V.3 */
+  const GAS_API_URL='https://script.google.com/macros/s/AKfycbzG3RE33G__LN0tI_GiY26edCrqU1MJ5zcD4_Fx32Mjs9ru4uAsD-m23ibraQDrSA/exec';
   const PORTAL_URL='/PTS/v3/portal/';
   const SESSION_KEY='PTS_V3_ATTENDANCE_SESSION';
   let current=null;
