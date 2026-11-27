@@ -160,6 +160,10 @@ body{padding:0;background:white}
 main{padding:0 16px 10px}
 .tabs{margin:-22px 16px 22px}
 }
+  /* ซ่อนหน้าระหว่างตรวจสอบ SSO */
+.app:has(#authNotice.hidden):has(#protectedContent.hidden){
+  visibility:hidden;
+}
 </style>
 </head>
 <body>
@@ -192,7 +196,7 @@ main{padding:0 16px 10px}
 </nav>
 <main>
 <!-- ส่วนที่ 14 : ตรวจสอบสิทธิ์ก่อนเข้าระบบ -->
-<section id="authNotice" class="auth-notice">
+<section id="authNotice" class="auth-notice hidden">
 <span class="material-icons-round">lock</span>
 <h2>PTS Smart School V.3</h2>
 <p id="authMessage">กำลังตรวจสอบสิทธิ์การเข้าสู่ระบบ...</p>
