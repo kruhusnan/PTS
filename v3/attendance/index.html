@@ -435,7 +435,7 @@ main{padding:0 16px 10px}
 <label for="enrollEmployee">ชื่อบุคลากร</label>
 <div class="input-box">
 <span class="material-icons-round">person</span>
-<input id="enrollEmployee" type="text" readonly>
+<select id="enrollEmployee" disabled><option value="">-- เลือกชื่อบุคลากร --</option></select>
 </div>
 <label for="teacherPinInput">รหัส PIN 4 หลักส่วนตัว</label>
 <div class="input-box">
@@ -655,7 +655,7 @@ async function loadInitialData(){
   $('sessionPosition').textContent=person
     ?[person.position,person.type].filter(Boolean).join(' • ')
     :'บุคลากรโรงเรียนบ้านปงตา';
-  $('enrollEmployee').value=session.teacherName;
+  setEnrollSessionName(session.teacherName);
   if(data.logo){
     try{
       const logo=new URL(data.logo);
@@ -696,21 +696,52 @@ function refreshDeviceUI(){
     :'บุคลากรโรงเรียนบ้านปงตา';
 }
 /* ส่วนที่ 37 : เปิดและปิดหน้าต่างลงทะเบียน */
-function openEnrollModal(){
+/* กำหนดชื่อจาก SSO โดยไม่อนุญาตให้เปลี่ยนชื่อ */
+function setEnrollSessionName(name){
+  const select=$('enrollEmployee');
+  select.replaceChildren(new Option(name,name,true,true));
+  select.disabled=true;
+}
+/* โหลดเฉพาะรายชื่อจาก API ลงทะเบียนโดยตรง */
+let enrollListRequest=0;
+async function openEnrollModal(){
   if(busy)return;
   if(directRegistration){
-    $('enrollEmployee').readOnly=false;
-    $('enrollEmployee').maxLength=150;
-    $('enrollEmployee').placeholder='กรอกชื่อ-นามสกุลตามระบบ Portal';
-    $('enrollEmployee').value='';
-    $('enrollDescription').textContent='กรอกชื่อ-นามสกุลและ PIN ส่วนตัวที่ใช้ใน PTS Portal เพื่อลงทะเบียนอุปกรณ์';
+    const request=++enrollListRequest;
+    const select=$('enrollEmployee');
+    select.replaceChildren(new Option('กำลังโหลดรายชื่อ...',''));
+    select.disabled=true;
+    $('btnRegisterBio').disabled=true;
+    $('enrollDescription').textContent='เลือกชื่อบุคลากรและกรอก PIN ส่วนตัวที่ใช้ใน PTS Portal เพื่อลงทะเบียนอุปกรณ์';
     $('teacherPinInput').value='';
     $('enrollModal').classList.remove('hidden');
+    try{
+      const response=await fetch('https://script.google.com/macros/s/AKfycbzG3RE33G__LN0tI_GiY26edCrqU1MJ5zcD4_Fx32Mjs9ru4uAsD-m23ibraQDrSA/exec',{
+        method:'POST',redirect:'follow',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'directEnrollStaff'})
+      });
+      if(!response.ok)throw Error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์');
+      const result=await response.json();
+      if(request!==enrollListRequest||!directRegistration)return;
+      if(result.success!==true||result.version!=='V.3'||!Array.isArray(result.staff))throw Error(result.message||'ไม่สามารถโหลดรายชื่อได้');
+      const names=[...new Set(result.staff.filter(n=>typeof n==='string').map(n=>n.trim()).filter(Boolean))];
+      if(!names.length)throw Error('ไม่พบรายชื่อบุคลากร');
+      select.replaceChildren(new Option('-- เลือกชื่อบุคลากร --',''));
+      names.forEach(name=>select.add(new Option(name,name)));
+      select.disabled=false;
+      $('btnRegisterBio').disabled=false;
+    }catch(error){
+      if(request!==enrollListRequest)return;
+      select.replaceChildren(new Option('โหลดรายชื่อไม่สำเร็จ',''));
+      showToast(error.message||'โหลดรายชื่อไม่สำเร็จ',true);
+    }
     return;
   }
   try{
     const session=requireSession();
-    $('enrollEmployee').value=session.teacherName;
+    setEnrollSessionName(session.teacherName);
+    $('btnRegisterBio').disabled=false;
     $('teacherPinInput').value='';
     $('enrollModal').classList.remove('hidden');
   }catch(error){
@@ -718,6 +749,8 @@ function openEnrollModal(){
   }
 }
 function closeEnrollModal(){
+  enrollListRequest++;
+  $('btnRegisterBio').disabled=busy;
   $('teacherPinInput').value='';
   $('enrollModal').classList.add('hidden');
 }
@@ -759,7 +792,7 @@ async function registerDirectDevice(){
   if(busy||!directRegistration)return;
   const name=$('enrollEmployee').value.trim();
   let pin=$('teacherPinInput').value.trim();
-  if(!name||name.length>150)return showToast('กรุณากรอกชื่อ-นามสกุล',true);
+  if(!name||name.length>150)return showToast('กรุณาเลือกชื่อบุคลากร',true);
   if(!/^\d{4}$/.test(pin))return showToast('กรุณากรอก PIN 4 หลัก',true);
   if(!bio||typeof bio.enrollDirect!=='function')return showToast('กรุณาอัปเดต biometric.js',true);
   if(!confirm('ยืนยันการลงทะเบียนหรือเปลี่ยนอุปกรณ์สำหรับบัญชีของคุณ?'))return;
