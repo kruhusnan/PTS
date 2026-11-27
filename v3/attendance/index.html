@@ -209,11 +209,11 @@ main{padding:0 16px 10px}
 <span class="material-icons-round">person</span>
 </div>
 <div class="session-info">
-<small>เข้าสู่ระบบผ่าน PTS Portal</small>
+<small id="sessionLabel">เข้าสู่ระบบผ่าน PTS Portal</small>
 <strong id="sessionName">-</strong>
 <p id="sessionPosition">-</p>
 </div>
-<span class="material-icons-round session-verified">verified_user</span>
+<span id="sessionVerified" class="material-icons-round session-verified">verified_user</span>
 </div>
 <!-- ส่วนที่ 16 : แบบฟอร์มลงเวลา -->
 <section id="attendanceTab">
@@ -427,7 +427,7 @@ main{padding:0 16px 10px}
 </div>
 </section>
 <!-- ส่วนที่ 26 : ออกจากระบบ -->
-<button type="button" onclick="logoutAttendance()" style="width:100%;padding:12px;margin:14px 0;border:1px solid #fbcfe8;border-radius:12px;background:#fff1f5;color:#be185d;display:flex;align-items:center;justify-content:center;gap:7px">
+<button id="logoutAttendanceBtn" type="button" onclick="logoutAttendance()" style="width:100%;padding:12px;margin:14px 0;border:1px solid #fbcfe8;border-radius:12px;background:#fff1f5;color:#be185d;display:flex;align-items:center;justify-content:center;gap:7px">
 <span class="material-icons-round">logout</span>
 ออกจากระบบลงเวลา
 </button>
@@ -444,7 +444,7 @@ main{padding:0 16px 10px}
 <span class="material-icons-round">close</span>
 </button>
 </div>
-<p style="font-size:12px;color:#64748b;margin:0 0 14px">
+<p id="enrollDescription" style="font-size:12px;color:#64748b;margin:0 0 14px">
 ชื่อบุคลากรจะถูกกำหนดจาก PTS Portal โดยอัตโนมัติ กรุณากรอก PIN ส่วนตัวเพื่อยืนยันการลงทะเบียน
 </p>
 <label for="enrollEmployee">ชื่อบุคลากร</label>
@@ -473,7 +473,7 @@ main{padding:0 16px 10px}
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- ส่วนที่ 29 : โหลด SSO ก่อน Biometric -->
 <script src="../sso.js?v=3.0.5"></script>
-<script src="./biometric.js?v=3.0.5"></script>
+<script src="./biometric.js?v=3.0.6"></script>
 <script>
 /* ส่วนที่ 30 : ตัวแปรส่วนกลาง */
 const sso=window.PTSSSO;
@@ -481,6 +481,7 @@ const bio=window.PTSBiometric;
 const $=id=>document.getElementById(id);
 let staff=[],busy=false,toastTimer=null,reportRequest=0;
 let authenticated=false;
+let directRegistration=false;
 const PERSONNEL_ORDER=[
   'ข้าราชการ',
   'พนักงานราชการ',
@@ -537,6 +538,7 @@ function requireSession(){
   return session;
 }
 function showAuthNotice(message){
+  directRegistration=false;
   authenticated=false;
   reportRequest++;
   staff=[];
@@ -595,7 +597,7 @@ async function initialize(){
   try{
     const session=await sso.init();
     if(!session){
-      showAuthNotice('กรุณาเข้าสู่ PTS Portal เพื่อยืนยันตัวตน');
+      showDirectRegistration();
       return;
     }
     authenticated=true;
@@ -614,6 +616,37 @@ async function initialize(){
   }catch(error){
     showAuthNotice(error.message||'ไม่สามารถตรวจสอบสิทธิ์ได้');
   }
+}
+/* ส่วนที่ 34.1 : เปิดหน้าหลักสำหรับลงทะเบียนโดยตรง โดยไม่เปิดสิทธิ์ลงเวลาหรือรายงาน */
+function showDirectRegistration(){
+  authenticated=false;
+  directRegistration=true;
+  reportRequest++;
+  staff=[];
+  const today=localDateString();
+  $('customDate').value=today;
+  $('customDate').max=today;
+  $('reportDate').value=today;
+  $('authNotice').classList.add('hidden');
+  $('protectedContent').classList.remove('hidden');
+  $('mainTabs').classList.remove('hidden');
+  $('enrollMenuBtn').classList.remove('hidden');
+  $('attendanceTab').classList.remove('hidden');
+  $('reportTab').classList.add('hidden');
+  $('dashboardContent').classList.add('hidden');
+  $('tab-attendance').classList.add('active');
+  $('tab-report').classList.remove('active');
+  $('tab-report').disabled=true;
+  $('logoutAttendanceBtn').classList.add('hidden');
+  $('sessionLabel').textContent='ลงทะเบียนอุปกรณ์';
+  $('sessionName').textContent='ยังไม่ได้ยืนยันตัวตน';
+  $('sessionPosition').textContent='กดลงทะเบียน / เปลี่ยนเครื่อง ด้านบน';
+  $('sessionVerified').classList.add('hidden');
+  $('registeredOwnerCard').classList.add('hidden');
+  $('deviceStatusBadge').classList.remove('ready');
+  $('deviceStatusText').textContent='กรุณาลงทะเบียนอุปกรณ์';
+  toggleFields();
+  $('attendanceForm').inert=true;
 }
 /* ส่วนที่ 35 : โหลดข้อมูลบุคลากรและโลโก้ */
 async function loadInitialData(){
@@ -674,6 +707,16 @@ function refreshDeviceUI(){
 /* ส่วนที่ 37 : เปิดและปิดหน้าต่างลงทะเบียน */
 function openEnrollModal(){
   if(busy)return;
+  if(directRegistration){
+    $('enrollEmployee').readOnly=false;
+    $('enrollEmployee').maxLength=150;
+    $('enrollEmployee').placeholder='กรอกชื่อ-นามสกุลตามระบบ Portal';
+    $('enrollEmployee').value='';
+    $('enrollDescription').textContent='กรอกชื่อ-นามสกุลและ PIN ส่วนตัวที่ใช้ใน PTS Portal เพื่อลงทะเบียนอุปกรณ์';
+    $('teacherPinInput').value='';
+    $('enrollModal').classList.remove('hidden');
+    return;
+  }
   try{
     const session=requireSession();
     $('enrollEmployee').value=session.teacherName;
@@ -690,6 +733,7 @@ function closeEnrollModal(){
 /* ส่วนที่ 38 : ลงทะเบียนอุปกรณ์ด้วย SSO และ PIN */
 async function registerWebAuthnBiometric(){
   if(busy)return;
+  if(directRegistration)return registerDirectDevice();
   let pin=$('teacherPinInput').value.trim();
   if(!/^\d{4}$/.test(pin)){
     return showToast('กรุณากรอก PIN 4 หลัก',true);
@@ -713,6 +757,33 @@ async function registerWebAuthnBiometric(){
     await loadInitialData();
   }catch(error){
     handleError(error);
+  }finally{
+    pin='';
+    $('teacherPinInput').value='';
+    setLoading(false);
+  }
+}
+/* ส่วนที่ 38.1 : ลงทะเบียนด้วยชื่อและ PIN โดยไม่สร้าง SSO Session */
+async function registerDirectDevice(){
+  if(busy||!directRegistration)return;
+  const name=$('enrollEmployee').value.trim();
+  let pin=$('teacherPinInput').value.trim();
+  if(!name||name.length>150)return showToast('กรุณากรอกชื่อ-นามสกุล',true);
+  if(!/^\d{4}$/.test(pin))return showToast('กรุณากรอก PIN 4 หลัก',true);
+  if(typeof bio.enrollDirect!=='function')return showToast('กรุณาอัปเดต biometric.js',true);
+  if(!confirm('ยืนยันการลงทะเบียนหรือเปลี่ยนอุปกรณ์สำหรับบัญชีของคุณ?'))return;
+  try{
+    setLoading(true,'กำลังตรวจสอบ PIN...');
+    $('teacherPinInput').value='';
+    const result=await bio.enrollDirect(name,pin,message=>$('loadingText').textContent=message);
+    closeEnrollModal();
+    $('enrollEmployee').value='';
+    $('deviceStatusText').textContent='ลงทะเบียนอุปกรณ์สำเร็จ';
+    $('deviceStatusBadge').classList.add('ready');
+    $('sessionPosition').textContent='กลับหน้าหลักเพื่อใช้งานเมนูลงเวลาปฏิบัติงาน';
+    showToast(result.message||'ลงทะเบียนอุปกรณ์ V.3 สำเร็จ');
+  }catch(error){
+    showToast(error.name==='NotAllowedError'?'ยกเลิกการยืนยันตัวตน หรือหมดเวลา':error.message||'ลงทะเบียนไม่สำเร็จ',true);
   }finally{
     pin='';
     $('teacherPinInput').value='';
