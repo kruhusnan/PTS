@@ -66,7 +66,6 @@ button{font-family:inherit;cursor:pointer}
 .status.error{color:#991b1b}
 .status.info{color:#1e40af}
 .developer{font-size:10px;color:#fecdd3;margin-top:14px}
-.test-label{font-size:11px;color:#fecdd3;margin-top:8px}
 /* ส่วนที่ 8 : รองรับหน้าจอขนาดเล็ก */
 @media(max-width:360px){
 .school-name{font-size:23px}
@@ -92,7 +91,6 @@ button{font-family:inherit;cursor:pointer}
 <h1 class="school-name">โรงเรียนบ้านปงตา</h1>
 <p class="app-name">PTS SMART SCHOOL</p>
 <span class="version">VERSION 3.0</span>
-<p class="test-label">ระบบทดสอบ V.3 • 3.0.4</p>
 </header>
 <!-- ส่วนที่ 10 : ข้อมูลบุคลากรจาก SSO -->
 <div id="userCard" class="user-card" hidden>
@@ -159,8 +157,8 @@ button{font-family:inherit;cursor:pointer}
 </div>
 </main>
 <!-- ส่วนที่ 13 : โหลดระบบ SSO ก่อน Biometric -->
-<script src="/PTS/v3/sso.js?v=3.0.4"></script>
-<script src="/PTS/v3/attendance/biometric.js?v=3.0.4"></script>
+<script src="/PTS/v3/sso.js?v=3.0.5"></script>
+<script src="/PTS/v3/attendance/biometric.js?v=3.0.5"></script>
 <script>
 (function(){
   'use strict';
@@ -189,32 +187,36 @@ button{font-family:inherit;cursor:pointer}
   function renderSession(session){
     userCard.hidden=!session;
     teacherName.textContent=session?session.teacherName:'';
-    btn.setAttribute('aria-disabled',ready?'false':'true');
+    btn.setAttribute('aria-disabled',ready&&!busy?'false':'true');
     desc.textContent='ยืนยันตัวตนด้วย Biometric';
   }
   /* ส่วนที่ 17 : เริ่มต้นระบบและตรวจสอบโมดูล */
   async function initialize(){
-    if(!bio||typeof bio.directBiometricTest!=='function'){
-      show('ไม่สามารถโหลด biometric.js รุ่น 3.0.4 ได้','error');
+    if(!bio||
+       typeof bio.directBiometricAttendance!=='function'||
+       typeof bio.getDirectCredential!=='function'){
+      show('ไม่สามารถโหลด biometric.js รุ่น 3.0.5 ได้','error');
       return;
     }
     ready=true;
     renderSession(null);
     if(!sso){
-      show('ไม่สามารถโหลด sso.js ได้ (ยังสามารถทดสอบ Biometric โดยตรงได้)','error');
       return;
     }
     try{
       const session=await sso.init();
       renderSession(session);
-      hideStatus();
+      if(!busy&&status.hidden)hideStatus();
     }catch(error){
       renderSession(null);
-      show(error.message||'ไม่สามารถตรวจสอบ SSO ได้','error');
     }
   }
   /* ส่วนที่ 18 : ลงทะเบียนครั้งแรกต้องยืนยัน PIN ผ่าน Portal */
   registerLink.addEventListener('click',function(event){
+    if(busy){
+      event.preventDefault();
+      return;
+    }
     if(!sso||!sso.getSession()){
       event.preventDefault();
       location.href='./portal/';
@@ -232,31 +234,45 @@ button{font-family:inherit;cursor:pointer}
       renderSession(sso.getSession());
     }
   },60000);
-  /* ส่วนที่ 21 : ทดสอบ Biometric และ GPS โดยไม่ต้องเข้า Portal */
+  /* ส่วนที่ 21 : ลงเวลาผ่าน Biometric และ GPS โดยไม่ต้องเข้า Portal */
   btn.addEventListener('click',async function(event){
     event.preventDefault();
     if(!ready||busy)return;
+    if(!bio.isSupported()){
+      show('กรุณาเปิดผ่าน Chrome หรือ Safari ที่รองรับ Biometric','error');
+      return;
+    }
     if(!bio.getDirectCredential()){
       show('กรุณาเข้าสู่ PTS Portal และลงทะเบียนอุปกรณ์ V.3 ก่อนใช้งานครั้งแรก','info');
       return;
     }
     busy=true;
     btn.setAttribute('aria-busy','true');
+    btn.setAttribute('aria-disabled','true');
     try{
-      const result=await bio.directBiometricTest(
+      // เรียกฟังก์ชันบันทึกจริงจาก biometric.js
+      const result=await bio.directBiometricAttendance(
         message=>show(message,'info')
       );
-      show('✓ '+result.message,'success');
+      // แสดงผลสำเร็จเฉพาะเมื่อเซิร์ฟเวอร์ยืนยันการบันทึกจริง
+      if(!result||
+         result.success!==true||
+         result.recorded!==true||
+         result.testMode!==false){
+        throw Error('ยังไม่ได้รับการยืนยันการบันทึก กรุณาตรวจสอบรายงาน');
+      }
+      show('✓ '+(result.message||'บันทึกข้อมูลเรียบร้อยแล้ว'),'success');
     }catch(error){
       show(
         error.name==='NotAllowedError'
           ?'ยกเลิกหรือหมดเวลายืนยันตัวตน'
-          :error.message||'ทดสอบไม่สำเร็จ',
+          :error.message||'ไม่สามารถบันทึกข้อมูลได้',
         'error'
       );
     }finally{
       busy=false;
       btn.removeAttribute('aria-busy');
+      btn.setAttribute('aria-disabled',ready?'false':'true');
     }
   });
   /* ส่วนที่ 22 : ออกจากระบบลงเวลา */
@@ -275,6 +291,7 @@ button{font-family:inherit;cursor:pointer}
     }finally{
       busy=false;
       logoutBtn.disabled=false;
+      btn.setAttribute('aria-disabled',ready?'false':'true');
     }
   });
   /* ส่วนที่ 23 : เรียกใช้งานเมื่อเปิดหน้าเว็บ */
