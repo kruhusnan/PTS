@@ -1,15 +1,18 @@
 
 /* ========================================
    PTS SMART SCHOOL V.3 : QUICK ATTENDANCE
-   ระบบยืนยันตัวตน Biometric ผ่าน SSO
+   ระบบยืนยันตัวตน Biometric และ SSO
    โรงเรียนบ้านปงตา
+   ผู้พัฒนาระบบ: นายหุสนัน เจ๊ะเตะ ครูโรงเรียนบ้านปงตา
 ======================================== */
 (function(){
   'use strict';
   /* ส่วนที่ 1 : ตั้งค่าระบบ V.3 */
+  const GAS_API_URL='https://script.google.com/macros/s/AKfycbzG3RE33G__LN0tI_GiY26edCrqU1MJ5zcD4_Fx32Mjs9ru4uAsD-m23ibraQDrSA/exec';
   const STORAGE_KEY='PTS_V3_WEBAUTHN_DEVICE';
   const ATTENDANCE_URL='/PTS/v3/attendance/';
   let quickBusy=false,prepared=null,pending=null;
+  let directBusy=false;
   /* ส่วนที่ 2 : อ่าน SSO Session ปัจจุบัน */
   function getSession(){
     return window.PTSSSO?.getSession()||null;
@@ -27,13 +30,15 @@
     }
     return session;
   }
-  /* อ่านข้อมูลอุปกรณ์ที่ลงทะเบียนไว้ */
-  function getSavedCredential(){
+  /* ส่วนที่ 3 : อ่านทะเบียนอุปกรณ์โดยไม่ต้องมี SSO */
+  function getDirectCredential(){
     try{
-      const session=getSession();
-      if(!session)return null;
       const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
-      if(!saved||saved.version!==3||saved.name!==session.teacherName||!saved.credentialId){
+      if(!saved||
+         saved.version!==3||
+         !saved.name||
+         typeof saved.credentialId!=='string'||
+         !/^[A-Za-z0-9_-]{1,2048}$/.test(saved.credentialId)){
         return null;
       }
       return saved;
@@ -41,12 +46,21 @@
       return null;
     }
   }
-  /* ตรวจสอบการลงทะเบียนอุปกรณ์ */
+  /* อ่านทะเบียนอุปกรณ์ที่ตรงกับ SSO Session */
+  function getSavedCredential(){
+    const session=getSession();
+    const saved=getDirectCredential();
+    if(!session||!saved||saved.name!==session.teacherName){
+      return null;
+    }
+    return saved;
+  }
+  /* ตรวจสอบการลงทะเบียนอุปกรณ์ผ่าน SSO */
   function hasRegisteredDevice(){
     const saved=getSavedCredential();
     return Boolean(saved&&saved.name&&saved.credentialId);
   }
-  /* ตรวจสอบการรองรับ WebAuthn */
+  /* ส่วนที่ 4 : ตรวจสอบการรองรับ WebAuthn */
   function isSupported(){
     return Boolean(
       window.isSecureContext&&
@@ -75,6 +89,7 @@
       teacherName:session?session.teacherName:'',
       supported:isSupported(),
       registered:hasRegisteredDevice(),
+      directRegistered:Boolean(getDirectCredential()),
       gpsSupported:Boolean(navigator.geolocation)
     };
   }
@@ -82,7 +97,7 @@
   function openAttendance(){
     window.location.href=ATTENDANCE_URL;
   }
-  /* ส่วนที่ 3 : ติดต่อ Google Apps Script ผ่าน SSO */
+  /* ส่วนที่ 5 : ติดต่อ Google Apps Script ผ่าน SSO */
   async function post(payload){
     if(!window.PTSSSO){
       throw Error('ไม่พบระบบ SSO V.3');
@@ -90,13 +105,51 @@
     requireSession();
     return window.PTSSSO.post(payload);
   }
-  /* แปลง Base64URL เป็นข้อมูลสำหรับ WebAuthn */
+  /* ติดต่อ API สำหรับทดสอบ Biometric โดยตรง */
+  async function directPost(payload){
+    if(!['bioTestBegin','bioTestFinish'].includes(payload.action)){
+      throw Error('ไม่อนุญาตให้ใช้คำสั่งนี้');
+    }
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(GAS_API_URL)){
+      throw Error('URL ระบบลงเวลา V.3 ไม่ถูกต้อง');
+    }
+    const response=await fetch(GAS_API_URL,{
+      method:'POST',
+      redirect:'follow',
+      credentials:'omit',
+      cache:'no-store',
+      referrerPolicy:'no-referrer',
+      headers:{
+        'Content-Type':'text/plain;charset=utf-8'
+      },
+      body:JSON.stringify(payload)
+    });
+    if(!response.ok){
+      throw Error('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์');
+    }
+    let result;
+    try{
+      result=await response.json();
+    }catch(e){
+      throw Error('เซิร์ฟเวอร์ไม่ได้ส่งข้อมูล JSON กรุณาตรวจสอบ Deployment');
+    }
+    if(!result||result.success!==true){
+      const error=Error(
+        result&&result.message||
+        'ไม่สามารถยืนยันตัวตนได้'
+      );
+      error.code=result&&result.code||'';
+      throw error;
+    }
+    return result;
+  }
+  /* ส่วนที่ 6 : แปลงข้อมูล WebAuthn */
   function fromB64(s){
     let b=s.replace(/-/g,'+').replace(/_/g,'/');
     b+='='.repeat((4-b.length%4)%4);
     return Uint8Array.from(atob(b),x=>x.charCodeAt(0));
   }
-  /* แปลงข้อมูล WebAuthn เป็น Base64URL */
+  /* แปลงข้อมูลเป็น Base64URL */
   function toB64(b){
     let s='';
     for(const x of new Uint8Array(b)){
@@ -119,9 +172,8 @@
       signature:toB64(a.response.signature)
     };
   }
-  /* เรียกหน้าต่างยืนยันตัวตนจากอุปกรณ์ */
-  async function scan(challenge,credentialId){
-    requireSession();
+  /* ส่วนที่ 7 : เรียกหน้าต่างยืนยันตัวตนจากอุปกรณ์ */
+  async function scanCredential(challenge,credentialId){
     if(!isSupported()){
       throw Error('กรุณาเปิดผ่าน Chrome หรือ Safari ที่รองรับ WebAuthn');
     }
@@ -140,7 +192,12 @@
     });
     return encodeAssertion(assertion);
   }
-  /* ส่วนที่ 4 : ลงทะเบียนอุปกรณ์ด้วย PIN และ SSO */
+  /* ยืนยันตัวตนสำหรับระบบที่ต้องมี SSO */
+  async function scan(challenge,credentialId){
+    requireSession();
+    return scanCredential(challenge,credentialId);
+  }
+  /* ส่วนที่ 8 : ลงทะเบียนอุปกรณ์ด้วย PIN และ SSO */
   async function enroll(name,pin,onStatus){
     const session=requireSession(name);
     name=session.teacherName;
@@ -216,7 +273,7 @@
     prepared=null;
     return saved;
   }
-  /* ส่วนที่ 5 : ตรวจสอบตำแหน่ง GPS จริงจากอุปกรณ์ */
+  /* ส่วนที่ 9 : ตรวจสอบตำแหน่ง GPS จากอุปกรณ์ */
   function getLocation(){
     return new Promise((resolve,reject)=>{
       if(!navigator.geolocation){
@@ -240,7 +297,61 @@
       );
     });
   }
-  /* ส่วนที่ 6 : เตรียมข้อมูลลงเวลาด่วน */
+  /* ส่วนที่ 10 : ทดสอบ Biometric โดยตรงจากหน้าแรก */
+  async function directBiometricTest(onStatus){
+    if(directBusy||quickBusy){
+      throw Error('กำลังดำเนินการ กรุณารอสักครู่');
+    }
+    const saved=getDirectCredential();
+    if(!saved){
+      const error=Error('กรุณาลงทะเบียนอุปกรณ์ V.3 ก่อน');
+      error.code='REENROLL';
+      throw error;
+    }
+    if(!isSupported()){
+      throw Error('อุปกรณ์ไม่รองรับ Biometric กรุณาเปิดผ่าน Chrome หรือ Safari');
+    }
+    const notify=typeof onStatus==='function'?onStatus:()=>{};
+    directBusy=true;
+    try{
+      /* ขอ Challenge จากเซิร์ฟเวอร์ */
+      notify('กำลังเตรียมการยืนยันตัวตน...');
+      const result=await directPost({
+        action:'bioTestBegin',
+        credentialId:saved.credentialId
+      });
+      if(typeof result.challenge!=='string'||
+         !/^[A-Za-z0-9_-]{43}$/.test(result.challenge)){
+        throw Error('Challenge ไม่ถูกต้อง');
+      }
+      /* ยืนยันตัวตนด้วยระบบ Biometric ของอุปกรณ์ */
+      notify('กรุณายืนยันตัวตนบนอุปกรณ์...');
+      const assertion=await scanCredential(
+        result.challenge,
+        saved.credentialId
+      );
+      /* ตรวจสอบ GPS */
+      notify('กำลังตรวจสอบ GPS...');
+      const location=await getLocation();
+      /* ส่งหลักฐานให้เซิร์ฟเวอร์ตรวจสอบ */
+      notify('กำลังตรวจสอบผลการยืนยันตัวตน...');
+      const verified=await directPost({
+        action:'bioTestFinish',
+        challenge:result.challenge,
+        assertion:assertion,
+        latitude:location.latitude,
+        longitude:location.longitude
+      });
+      /* ตรวจสอบว่าเป็นผลจากโหมดทดสอบเท่านั้น */
+      if(verified.testMode!==true||verified.recorded!==false){
+        throw Error('ผลตอบกลับไม่ตรงกับโหมดทดสอบ V.3');
+      }
+      return verified;
+    }finally{
+      directBusy=false;
+    }
+  }
+  /* ส่วนที่ 11 : เตรียมข้อมูลลงเวลาด่วนผ่าน SSO */
   function quickData(){
     const session=requireSession();
     const saved=getSavedCredential();
@@ -267,114 +378,30 @@
       data.customDate
     ]);
   }
-  /* เตรียม Challenge ล่วงหน้าเพื่อลดเวลารอ */
+  /* ส่วนที่ 12 : ระงับการเตรียม Challenge บันทึกจริง */
   async function prime(){
-    if(!getSession()||
-       !isSupported()||
-       !hasRegisteredDevice()||
-       quickBusy)return;
-    const data=quickData();
-    const key=quickKey(data);
-    if(prepared&&
-       prepared.key===key&&
-       Date.now()-prepared.at<90000)return;
-    if(pending)return pending;
-    pending=post({
-      action:'qaBegin',
-      data:data
-    }).then(result=>{
-      const session=getSession();
-      if(!session||session.teacherName!==data.employeeName){
-        prepared=null;
-        return;
-      }
-      prepared={
-        key:key,
-        at:Date.now(),
-        challenge:result.challenge
-      };
-    }).catch(()=>{
-      prepared=null;
-    }).finally(()=>{
-      pending=null;
-    });
-    return pending;
+    /* V.3 ยังอยู่ในโหมดทดสอบ */
+    prepared=null;
+    pending=null;
+    return null;
   }
-  /* ส่วนที่ 7 : ยืนยันตัวตนและตรวจสอบ GPS */
+  /* ส่วนที่ 13 : ระงับการบันทึกเวลาจริงระหว่างทดสอบ */
   async function submit(data,onStatus,challenge){
-    const session=requireSession(data.employeeName);
-    const saved=getSavedCredential();
-    if(!saved||saved.credentialId!==data.credentialId){
-      const error=Error('กรุณาลงทะเบียนอุปกรณ์ก่อน');
-      error.code='REENROLL';
-      throw error;
-    }
-    data={
-      ...data,
-      employeeName:session.teacherName
-    };
-    const notify=typeof onStatus==='function'?onStatus:()=>{};
-    if(!challenge){
-      notify('กำลังเตรียมการยืนยันตัวตน...');
-      const result=await post({
-        action:'qaBegin',
-        data:data
-      });
-      challenge=result.challenge;
-    }
-    notify('กรุณายืนยันตัวตนบนโทรศัพท์...');
-    const assertion=await scan(challenge,data.credentialId);
-    let location={
-      latitude:null,
-      longitude:null
-    };
-    if(data.entryType==='มาปฏิบัติงาน'){
-      notify('กำลังตรวจสอบ GPS...');
-      location=await getLocation();
-    }
-    requireSession(data.employeeName);
-    /* ส่งหลักฐานยืนยันตัวตนให้เซิร์ฟเวอร์ตรวจสอบ */
-    notify('กำลังบันทึกข้อมูล...');
-    return post({
-      action:'qaFinish',
-      employeeName:data.employeeName,
-      challenge:challenge,
-      assertion:assertion,
-      latitude:location.latitude,
-      longitude:location.longitude
-    });
+    requireSession(data&&data.employeeName);
+    throw Error('ระบบ V.3 ยังไม่เปิดบันทึกการปฏิบัติราชการจริง');
   }
-  /* ส่วนที่ 8 : ฟังก์ชันลงเวลาด่วนจากหน้าแรก */
+  /* ส่วนที่ 14 : ฟังก์ชันลงเวลาด่วนจากหน้าแรก */
   async function quickAttendance(onStatus){
-    if(quickBusy){
-      throw Error('กำลังดำเนินการ');
-    }
-    const data=quickData();
-    const key=quickKey(data);
-    quickBusy=true;
-    try{
-      let challenge=null;
-      if(prepared&&
-         prepared.key===key&&
-         Date.now()-prepared.at<90000){
-        challenge=prepared.challenge;
-        prepared=null;
-      }
-      return await submit(data,onStatus,challenge);
-    }finally{
-      quickBusy=false;
-      prepared=null;
-      if(getSession()){
-        prime().catch(()=>{});
-      }
-    }
+    return directBiometricTest(onStatus);
   }
-  /* ส่วนที่ 9 : ล้าง Challenge ที่เตรียมไว้ */
+  /* ส่วนที่ 15 : ล้าง Challenge ที่เตรียมไว้ */
   function clearPrepared(){
     prepared=null;
+    pending=null;
   }
-  /* ส่วนที่ 10 : เปิดฟังก์ชันให้หน้าเว็บ V.3 เรียกใช้งาน */
+  /* ส่วนที่ 16 : เปิดฟังก์ชันให้หน้าเว็บ V.3 เรียกใช้งาน */
   window.PTSBiometric=Object.freeze({
+    getDirectCredential,
     getSavedCredential,
     hasRegisteredDevice,
     isSupported,
@@ -385,6 +412,7 @@
     enroll,
     submit,
     quickAttendance,
+    directBiometricTest,
     clearPrepared
   });
 })();
